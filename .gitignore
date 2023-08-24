@@ -1,0 +1,4 @@
+# Modelsim related
+libraries/
+modelsim.ini
+vsim.*
