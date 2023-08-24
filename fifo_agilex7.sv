@@ -1,0 +1,77 @@
+// (C) 2001-2023 Intel Corporation. All rights reserved.
+// Your use of Intel Corporation's design tools, logic functions and other
+// software and tools, and its AMPP partner logic functions, and any output
+// files from any of the foregoing (including device programming or simulation
+// files), and any associated documentation or information are expressly subject
+// to the terms and conditions of the Intel Program License Subscription
+// Agreement, Intel FPGA IP License Agreement, or other applicable
+// license agreement, including, without limitation, that your use is for the
+// sole purpose of programming logic devices manufactured by Intel and sold by
+// Intel or its authorized distributors.  Please refer to the applicable
+// agreement for further details.
+
+
+
+// synopsys translate_off
+`timescale 1 ps / 1 ps
+// synopsys translate_on
+module  fifo_agilex7 #(
+    parameter DEPTH = 4,
+    parameter WIDTH = 32,
+    parameter SHOWAHEAD = "OFF",
+    parameter FORCE_MLAB = 0
+) (
+    clock,
+    data,
+    rdreq,
+    sclr,
+    wrreq,
+    empty,
+    full,
+    q);
+
+    input    clock;
+    input  [WIDTH-1:0]  data;
+    input    rdreq;
+    input    sclr;
+    input    wrreq;
+    output   empty;
+    output   full;
+    output [WIDTH-1:0]  q;
+
+    wire  sub_wire0;
+    wire  sub_wire1;
+    wire [WIDTH-1:0] sub_wire2;
+    wire  empty = sub_wire0;
+    wire  full = sub_wire1;
+    wire [WIDTH-1:0] q = sub_wire2[WIDTH-1:0];
+
+    scfifo  scfifo_component (
+                .clock (clock),
+                .data (data),
+                .rdreq (rdreq),
+                .sclr (sclr),
+                .wrreq (wrreq),
+                .empty (sub_wire0),
+                .full (sub_wire1),
+                .q (sub_wire2),
+                .aclr (1'b0),
+                .almost_empty (),
+                .almost_full (),
+                .eccstatus (),
+                .usedw ());
+    defparam
+        scfifo_component.add_ram_output_register  = "ON",
+        scfifo_component.enable_ecc  = "FALSE",
+        scfifo_component.intended_device_family  = "Agilex 7",
+        scfifo_component.lpm_hint  = (FORCE_MLAB == 1) ? "RAM_BLOCK_TYPE=MLAB" : "RAM_BLOCK_TYPE=AUTO",
+        scfifo_component.lpm_numwords  = DEPTH,
+        scfifo_component.lpm_showahead  = SHOWAHEAD,
+        scfifo_component.lpm_type  = "scfifo",
+        scfifo_component.lpm_width  = WIDTH,
+        scfifo_component.lpm_widthu  = $clog2(DEPTH),
+        scfifo_component.overflow_checking  = "OFF",
+        scfifo_component.underflow_checking  = "OFF",
+        scfifo_component.use_eab  = "ON";
+
+endmodule: fifo_agilex7
