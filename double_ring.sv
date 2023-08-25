@@ -122,7 +122,7 @@ module double_ring #(
     // Generate routers
     generate begin: router_gen
         genvar i, j;
-        for (i = 0; i < NUM_ROUTERS; i = i + 1) begin: router_gen_for
+        for (i = 0; i < NUM_ROUTERS; i = i + 1) begin: for_routers
             // Generate routing table file name
             localparam string routing_table = $sformatf("%s%0d.hex", ROUTING_TABLE_PREFIX, i);
 

@@ -78,8 +78,8 @@ module axis_mesh #(
 
     generate begin: shim_gen
         genvar i, j;
-        for (i = 0; i < NUM_ROWS; i = i + 1) begin: shim_gen_for_row
-            for (j = 0; j < NUM_COLS; j = j + 1) begin: shim_gen_for_col
+        for (i = 0; i < NUM_ROWS; i = i + 1) begin: for_rows
+            for (j = 0; j < NUM_COLS; j = j + 1) begin: for_cols
                 axis_serializer_shim_in #(
                     .TDEST_WIDTH            (DEST_WIDTH),
                     .TDATA_WIDTH            (TDATA_WIDTH),

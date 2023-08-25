@@ -94,7 +94,7 @@ module router #(
     // Input generate
     generate begin: input_assign_gen
         genvar i;
-        for (i = 0; i < NUM_INPUTS; i++) begin: input_assign_gen_for
+        for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             // Pipeline enable
             assign pipeline_enable[i] = grant[route_table_out[i]][i] & (send_out[route_table_out[i]] | (~data_out_reg_valid[route_table_out[i]] & (PIPELINE_OUTPUT == 1)));
 
@@ -261,7 +261,7 @@ module router #(
     // Flit buffer FIFOs
     generate begin: flit_buffer_gen
         genvar i;
-        for (i = 0; i < NUM_INPUTS; i++) begin: flit_buffer_gen_for
+        for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             fifo_agilex7 #(
                 .WIDTH      (FLIT_WIDTH + 1),
                 .DEPTH      (FLIT_BUFFER_DEPTH),
@@ -283,7 +283,7 @@ module router #(
     // Destination FIFO
     generate begin: dest_buffer_gen
         genvar i;
-        for (i = 0; i < NUM_INPUTS; i++) begin: dest_buffer_gen_for
+        for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             fifo_agilex7 #(
                 .WIDTH      (DEST_WIDTH),
                 .DEPTH      (FLIT_BUFFER_DEPTH),
@@ -305,7 +305,7 @@ module router #(
     // Output Arbiters
     generate begin: arbiter_gen
         genvar i;
-        for (i = 0; i < NUM_OUTPUTS; i++) begin: arbiter_gen_for
+        for (i = 0; i < NUM_OUTPUTS; i++) begin: for_outputs
             arbiter_matrix #(
                 .NUM_INPUTS(NUM_INPUTS)
             ) arbiter_inst (

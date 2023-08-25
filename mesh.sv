@@ -184,8 +184,8 @@ module mesh #(
     // Generate routers
     generate begin: router_gen
         genvar i, j;
-        for (i = 0; i < NUM_ROWS; i = i + 1) begin: router_gen_for_row
-            for (j = 0; j < NUM_COLS; j = j + 1) begin: router_gen_for_col
+        for (i = 0; i < NUM_ROWS; i = i + 1) begin: for_rows
+            for (j = 0; j < NUM_COLS; j = j + 1) begin: for_cols
 
                 // Calculate number of IO ports
                 localparam num_io = 5 - ((i == 0) || i == (NUM_ROWS - 1))

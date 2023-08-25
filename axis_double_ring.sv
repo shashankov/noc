@@ -77,7 +77,7 @@ module axis_double_ring #(
 
     generate begin: shim_gen
         genvar i, j;
-        for (i = 0; i < NUM_ROUTERS; i = i + 1) begin: shim_gen_for
+        for (i = 0; i < NUM_ROUTERS; i = i + 1) begin: for_routers
             axis_serializer_shim_in #(
                 .TDEST_WIDTH            (DEST_WIDTH),
                 .TDATA_WIDTH            (TDATA_WIDTH),
