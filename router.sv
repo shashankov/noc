@@ -31,7 +31,7 @@ module router #(
     /**************************************************************************/
 
     // Routing Tables
-    logic [$clog2(NUM_OUTPUTS) - 1 : 0]         route_table         [NUM_INPUTS][NOC_NUM_ENDPOINTS];  // Replicated for each input
+    logic [$clog2(NUM_OUTPUTS) - 1 : 0]         route_table         [NOC_NUM_ENDPOINTS];  // Replicated for each input
     logic [$clog2(NUM_OUTPUTS) - 1 : 0]         route_table_out     [NUM_INPUTS];
     logic [$clog2(NOC_NUM_ENDPOINTS) - 1 : 0]   route_table_select  [NUM_INPUTS];
 
@@ -74,9 +74,12 @@ module router #(
 
     // Read the routing table into the ROM
     initial begin
-        for (int i = 0; i < NUM_INPUTS; i++) begin
-            $readmemh(ROUTING_TABLE_HEX, route_table[i]);
-        end
+        // Make explicit one routing table for all inputs
+        // Use generate statements to create multiple inital blocks/
+        // for Quartus to do the right thing (otherwise it only runs the
+        // first iteration of the for loop inside the initial statement
+        // and all other routing tables are empty...)
+        $readmemh(ROUTING_TABLE_HEX, route_table);
     end
 
     /**************************************************************************/
@@ -122,7 +125,7 @@ module router #(
     // Registered logic to read from the routing table
     always @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            route_table_out[i] <= route_table[i][route_table_select[i]];
+            route_table_out[i] <= route_table[route_table_select[i]];
         end
     end
 

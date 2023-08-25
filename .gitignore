@@ -3,3 +3,6 @@ libraries/
 modelsim.ini
 vsim.*
 transcript
+
+# Quartus backups
+*.bak

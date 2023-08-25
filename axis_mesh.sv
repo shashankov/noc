@@ -1,7 +1,7 @@
 module axis_mesh #(
     parameter RESET_SYNC_EXTEND_CYCLES = 2,
 
-    parameter NUM_ROWS = 2,
+    parameter NUM_ROWS = 3,
     parameter NUM_COLS = 2,
 
     parameter TID_WIDTH = 2,
@@ -12,7 +12,7 @@ module axis_mesh #(
     parameter SERDES_EXTRA_SYNC_STAGES = 0,
 
     parameter FLIT_BUFFER_DEPTH = 4,
-    parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_2x2/",
+    parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_3x2/",
     parameter DISABLE_ROUTER_SELFLOOP = 0,
     parameter FORCE_ROUTER_MLAB = 0
 ) (
