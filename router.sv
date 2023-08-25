@@ -247,7 +247,7 @@ module router #(
     // send_out signal
     always @(*) begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
-            if (PIPELINE_OUTPUT == 0)
+            if (PIPELINE_OUTPUT == 1)
                 send_out[i] = data_out_reg_valid[i] & (credit_counter[i] > 1'b0);
             else
                 send_out[i] = flit_out_valid[i] & (credit_counter[i] > 1'b0);
