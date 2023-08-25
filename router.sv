@@ -8,6 +8,7 @@ module router #(
     parameter DEST_WIDTH = 3,
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
+    parameter PIPELINE_OUTPUT = 0,
     parameter DISABLE_SELFLOOP = 0,     // Useful for IO pairs were data will not go back to the same router
     parameter FORCE_MLAB = 1
 ) (
@@ -65,6 +66,10 @@ module router #(
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  data_out_packed[NUM_OUTPUTS];
     logic                                       flit_out_valid[NUM_OUTPUTS];
 
+    // Output pipeline signals
+    logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  data_out_reg[NUM_OUTPUTS];
+    logic                                       data_out_reg_valid[NUM_OUTPUTS];
+
     // Output credit counter
     logic [$clog2(FLIT_BUFFER_DEPTH) : 0]       credit_counter  [NUM_OUTPUTS];
 
@@ -91,7 +96,7 @@ module router #(
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: input_assign_gen_for
             // Pipeline enable
-            assign pipeline_enable[i] = grant[route_table_out[i]][i] & send_out[route_table_out[i]];
+            assign pipeline_enable[i] = grant[route_table_out[i]][i] & (send_out[route_table_out[i]] | (~data_out_reg_valid[route_table_out[i]] & (PIPELINE_OUTPUT == 1)));
 
             // Read flit buffer when the pipeline is free
             assign flit_buffer_rdreq[i] = ~flit_buffer_empty[i] & (~flit_reg0_valid[i] | pipeline_enable[i]);
@@ -106,7 +111,7 @@ module router #(
             assign route_table_select[i] = dest_buffer_out[i][$clog2(NOC_NUM_ENDPOINTS) - 1 : 0];
 
             // Unpack the crossbar output
-            assign {data_out[i], dest_out[i], is_tail_out[i]} = data_out_packed[i];
+            assign {data_out[i], dest_out[i], is_tail_out[i]} = (PIPELINE_OUTPUT == 0) ? data_out_packed[i] : data_out_reg[i];
         end
     end
     endgenerate
@@ -216,10 +221,36 @@ module router #(
         end
     end
 
+    // Output data pipeline
+    always @(posedge clk) begin
+        for (int i = 0; i < NUM_OUTPUTS; i++) begin
+            if (~data_out_reg_valid[i] | send_out[i])
+                data_out_reg[i] <= data_out_packed[i];
+        end
+    end
+
+    // Data out pipeline valid signal
+    always @(posedge clk) begin
+        for (int i = 0; i < NUM_OUTPUTS; i++) begin
+            if (rst_n == 1'b0) begin
+                data_out_reg_valid[i] <= '0;
+            end else begin
+                if (send_out[i])
+                    data_out_reg_valid[i] <= 1'b0;
+
+                if (flit_out_valid[i])
+                    data_out_reg_valid[i] <= 1'b1;
+            end
+        end
+    end
+
     // send_out signal
     always @(*) begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
-            send_out[i] = flit_out_valid[i] & (credit_counter[i] > 1'b0);
+            if (PIPELINE_OUTPUT == 0)
+                send_out[i] = data_out_reg_valid[i] & (credit_counter[i] > 1'b0);
+            else
+                send_out[i] = flit_out_valid[i] & (credit_counter[i] > 1'b0);
         end
     end
 

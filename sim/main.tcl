@@ -98,16 +98,16 @@ sim:/router_tb/dut/data_out_packed \
 sim:/router_tb/dut/flit_out_valid \
 sim:/router_tb/dut/credit_counter
 
-add wave -position insertpoint  \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/NUM_INPUTS} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/clk} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/rst_n} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/request} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/hold} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/grant} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/matrix} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/enable} \
-{sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/deactivate}
+# add wave -position insertpoint  \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/NUM_INPUTS} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/clk} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/rst_n} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/request} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/hold} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/grant} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/matrix} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/enable} \
+# {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/deactivate}
 
 # Run the simulation.
 run -a

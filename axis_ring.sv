@@ -12,7 +12,8 @@ module axis_ring #(
 
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/ring_4/",
-    parameter FORCE_ROUTER_MLAB = 0
+    parameter ROUTER_PIPELINE_OUTPUT = 0,
+    parameter ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk_noc,
     input   wire    clk_usr,
@@ -138,7 +139,8 @@ module axis_ring #(
         .FLIT_WIDTH                (FLIT_WIDTH),
         .FLIT_BUFFER_DEPTH         (FLIT_BUFFER_DEPTH),
         .ROUTING_TABLE_PREFIX      (ROUTING_TABLE_PREFIX),
-        .FORCE_MLAB                (FORCE_ROUTER_MLAB)
+        .ROUTER_PIPELINE_OUTPUT    (ROUTER_PIPELINE_OUTPUT),
+        .ROUTER_FORCE_MLAB         (ROUTER_FORCE_MLAB)
     ) noc (
         .clk            (clk_noc),
         .rst_n          (rst_n_noc_sync),

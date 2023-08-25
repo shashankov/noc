@@ -1,8 +1,8 @@
 module axis_mesh #(
     parameter RESET_SYNC_EXTEND_CYCLES = 2,
 
-    parameter NUM_ROWS = 3,
-    parameter NUM_COLS = 2,
+    parameter NUM_ROWS = 4,
+    parameter NUM_COLS = 4,
 
     parameter TID_WIDTH = 2,
     parameter TDEST_WIDTH = 4,
@@ -12,9 +12,11 @@ module axis_mesh #(
     parameter SERDES_EXTRA_SYNC_STAGES = 0,
 
     parameter FLIT_BUFFER_DEPTH = 4,
-    parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_3x2/",
-    parameter DISABLE_ROUTER_SELFLOOP = 0,
-    parameter FORCE_ROUTER_MLAB = 0
+    parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/",
+
+    parameter ROUTER_PIPELINE_OUTPUT = 0,
+    parameter ROUTER_DISABLE_SELFLOOP = 1,
+    parameter ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk_noc,
     input   wire    clk_usr,
@@ -143,8 +145,9 @@ module axis_mesh #(
         .FLIT_WIDTH                (FLIT_WIDTH),
         .FLIT_BUFFER_DEPTH         (FLIT_BUFFER_DEPTH),
         .ROUTING_TABLE_PREFIX      (ROUTING_TABLE_PREFIX),
-        .DISABLE_ROUTER_SELFLOOP   (DISABLE_ROUTER_SELFLOOP),
-        .FORCE_MLAB                (FORCE_ROUTER_MLAB)
+        .ROUTER_PIPELINE_OUTPUT    (ROUTER_PIPELINE_OUTPUT),
+        .DISABLE_ROUTER_SELFLOOP   (ROUTER_DISABLE_SELFLOOP),
+        .FORCE_MLAB                (ROUTER_FORCE_MLAB)
     ) noc (
         .clk            (clk_noc),
         .rst_n          (rst_n_noc_sync),

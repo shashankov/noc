@@ -5,8 +5,9 @@ module mesh #(
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_2x2/",
-    parameter DISABLE_ROUTER_SELFLOOP = 0,
-    parameter FORCE_MLAB = 0
+    parameter ROUTER_PIPELINE_OUTPUT = 0,
+    parameter ROUTER_DISABLE_SELFLOOP = 0,
+    parameter ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -203,8 +204,9 @@ module mesh #(
                     .DEST_WIDTH         (DEST_WIDTH),
                     .FLIT_WIDTH         (FLIT_WIDTH),
                     .FLIT_BUFFER_DEPTH  (FLIT_BUFFER_DEPTH),
-                    .DISABLE_SELFLOOP   (DISABLE_ROUTER_SELFLOOP),
-                    .FORCE_MLAB         (FORCE_MLAB)
+                    .PIPELINE_OUTPUT    (ROUTER_PIPELINE_OUTPUT),
+                    .DISABLE_SELFLOOP   (ROUTER_DISABLE_SELFLOOP),
+                    .FORCE_MLAB         (ROUTER_FORCE_MLAB)
                 ) router_inst (
                     .clk            (clk),
                     .rst_n          (rst_n),

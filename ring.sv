@@ -4,7 +4,8 @@ module ring #(
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/ring_4/",
-    parameter FORCE_MLAB = 0
+    parameter ROUTER_PIPELINE_OUTPUT = 0,
+    parameter ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -104,8 +105,9 @@ module ring #(
                 .DEST_WIDTH         (DEST_WIDTH),
                 .FLIT_WIDTH         (FLIT_WIDTH),
                 .FLIT_BUFFER_DEPTH  (FLIT_BUFFER_DEPTH),
+                .PIPELINE_OUTPUT    (ROUTER_PIPELINE_OUTPUT),
                 .DISABLE_SELFLOOP   (0),
-                .FORCE_MLAB         (FORCE_MLAB)
+                .FORCE_MLAB         (ROUTER_FORCE_MLAB)
             ) router_inst (
                 .clk            (clk),
                 .rst_n          (rst_n),
