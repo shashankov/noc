@@ -14,7 +14,7 @@ module axis_mesh #(
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/",
 
-    parameter ROUTER_PIPELINE_OUTPUT = 0,
+    parameter ROUTER_PIPELINE_OUTPUT = 1,
     parameter ROUTER_DISABLE_SELFLOOP = 1,
     parameter ROUTER_FORCE_MLAB = 0
 ) (
@@ -146,8 +146,8 @@ module axis_mesh #(
         .FLIT_BUFFER_DEPTH         (FLIT_BUFFER_DEPTH),
         .ROUTING_TABLE_PREFIX      (ROUTING_TABLE_PREFIX),
         .ROUTER_PIPELINE_OUTPUT    (ROUTER_PIPELINE_OUTPUT),
-        .DISABLE_ROUTER_SELFLOOP   (ROUTER_DISABLE_SELFLOOP),
-        .FORCE_MLAB                (ROUTER_FORCE_MLAB)
+        .ROUTER_DISABLE_SELFLOOP   (ROUTER_DISABLE_SELFLOOP),
+        .ROUTER_FORCE_MLAB         (ROUTER_FORCE_MLAB)
     ) noc (
         .clk            (clk_noc),
         .rst_n          (rst_n_noc_sync),
