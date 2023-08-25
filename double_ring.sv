@@ -50,7 +50,7 @@ module double_ring #(
     logic                            credit_router_in   [NUM_ROUTERS][3];
 
     // Assign router input and output ports
-    always_comb begin
+    always @(*) begin
         for (int i = 0; i < NUM_ROUTERS; i++) begin
             // NoC IO Ports
                data_router_in [i][0] =    data_in  [i];
@@ -66,12 +66,6 @@ module double_ring #(
              credit_out [i] =  credit_router_out [i][0];
 
             // Clockwise Side Ports
-               data_router_in   [i][1] =    data_anticlock [i];
-               dest_router_in   [i][1] =    dest_anticlock [i];
-            is_tail_router_in   [i][1] = is_tail_anticlock [i];
-               send_router_in   [i][1] =    send_anticlock [i];
-             credit_router_in   [i][1] =  credit_anticlock [i];
-
                data_clock  [i] =    data_router_out [i][1];
                dest_clock  [i] =    dest_router_out [i][1];
             is_tail_clock  [i] = is_tail_router_out [i][1];
@@ -80,29 +74,46 @@ module double_ring #(
 
             // Anti-Clockwise Side Ports
             if (i != 0) begin
-                   data_router_in   [i][2] =    data_clock [i - 1];
-                   dest_router_in   [i][2] =    dest_clock [i - 1];
-                is_tail_router_in   [i][2] = is_tail_clock [i - 1];
-                   send_router_in   [i][2] =    send_clock [i - 1];
-                 credit_router_in   [i][2] =  credit_clock [i - 1];
-
                    data_anticlock  [i - 1] =    data_router_out [i][2];
                    dest_anticlock  [i - 1] =    dest_router_out [i][2];
                 is_tail_anticlock  [i - 1] = is_tail_router_out [i][2];
                    send_anticlock  [i - 1] =    send_router_out [i][2];
                  credit_anticlock  [i - 1] =  credit_router_out [i][2];
             end else begin  // loop around
-                   data_router_in   [i][2] =    data_clock [NUM_ROUTERS - 1];
-                   dest_router_in   [i][2] =    dest_clock [NUM_ROUTERS - 1];
-                is_tail_router_in   [i][2] = is_tail_clock [NUM_ROUTERS - 1];
-                   send_router_in   [i][2] =    send_clock [NUM_ROUTERS - 1];
-                 credit_router_in   [i][2] =  credit_clock [NUM_ROUTERS - 1];
-
                    data_anticlock  [NUM_ROUTERS - 1] =    data_router_out [i][2];
                    dest_anticlock  [NUM_ROUTERS - 1] =    dest_router_out [i][2];
                 is_tail_anticlock  [NUM_ROUTERS - 1] = is_tail_router_out [i][2];
                    send_anticlock  [NUM_ROUTERS - 1] =    send_router_out [i][2];
                  credit_anticlock  [NUM_ROUTERS - 1] =  credit_router_out [i][2];
+            end
+        end
+    end
+
+    // This split in the alwasy block is necessary for Modelsim
+    // to correctly assign the outputs without causing a delay
+    // by triggering some signals only on the next clock edge
+    always @(*) begin
+        for (int i = 0; i < NUM_ROUTERS; i++) begin
+            // Clockwise Side Ports
+               data_router_in   [i][1] =    data_anticlock [i];
+               dest_router_in   [i][1] =    dest_anticlock [i];
+            is_tail_router_in   [i][1] = is_tail_anticlock [i];
+               send_router_in   [i][1] =    send_anticlock [i];
+             credit_router_in   [i][1] =  credit_anticlock [i];
+
+            // Anti-Clockwise Side Ports
+            if (i != 0) begin
+                   data_router_in   [i][2] =    data_clock [i - 1];
+                   dest_router_in   [i][2] =    dest_clock [i - 1];
+                is_tail_router_in   [i][2] = is_tail_clock [i - 1];
+                   send_router_in   [i][2] =    send_clock [i - 1];
+                 credit_router_in   [i][2] =  credit_clock [i - 1];
+            end else begin  // loop around
+                   data_router_in   [i][2] =    data_clock [NUM_ROUTERS - 1];
+                   dest_router_in   [i][2] =    dest_clock [NUM_ROUTERS - 1];
+                is_tail_router_in   [i][2] = is_tail_clock [NUM_ROUTERS - 1];
+                   send_router_in   [i][2] =    send_clock [NUM_ROUTERS - 1];
+                 credit_router_in   [i][2] =  credit_clock [NUM_ROUTERS - 1];
             end
         end
     end

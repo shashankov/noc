@@ -1,12 +1,19 @@
 `timescale 1ns / 1ps
 
 module axis_mesh_tb();
-    logic clk, rst_n;
+    logic clk, clk_noc, rst_n;
 
     initial begin
         clk = 0;
         forever begin
             #5 clk = ~clk;
+        end
+    end
+
+    initial begin
+        clk_noc = 0;
+        forever begin
+            #2.5 clk_noc = ~clk_noc;
         end
     end
 
@@ -64,26 +71,38 @@ module axis_mesh_tb();
         @(negedge clk);
         @(negedge clk);
 
-        axis_in_tdest[0][0] = 4'h1;
-        axis_in_tlast[0][0] = 1'b1;
-        axis_in_tdata[0][0] = 512'h1;
-        axis_in_tvalid[0][0] = 1'b1;
+        // axis_in_tdest[0][0] = 4'h1;
+        // axis_in_tlast[0][0] = 1'b1;
+        // axis_in_tdata[0][0] = 512'h1;
+        // axis_in_tvalid[0][0] = 1'b1;
+        // @(negedge clk);
+        // axis_in_tdest[0][0] = 4'h2;
+        // @(negedge clk);
+        // axis_in_tdest[0][0] = 4'h3;
+        // @(negedge clk);
+        // axis_in_tvalid[0][0] = 1'b0;
+        // axis_in_tdest[0][1] = 4'h0;
+        // axis_in_tlast[0][1] = 1'b1;
+        // axis_in_tdata[0][1] = 512'h1;
+        // axis_in_tvalid[0][1] = 1'b1;
+        // @(negedge clk);
+        // axis_in_tdest[0][1] = 4'h2;
+        // @(negedge clk);
+        // axis_in_tdest[0][1] = 4'h3;
+        // @(negedge clk);
+        // axis_in_tvalid[0][1] = 1'b0;
         @(negedge clk);
-        axis_in_tdest[0][0] = 4'h2;
+        axis_in_tvalid[1][0] = 1'b1;
+        axis_in_tdest[1][0] = 4'h1;
+        axis_in_tlast[1][0] = 1'b1;
+        axis_in_tdata[1][0] = 512'h1;
+
         @(negedge clk);
-        axis_in_tdest[0][0] = 4'h3;
         @(negedge clk);
-        axis_in_tvalid[0][0] = 1'b0;
-        axis_in_tdest[0][1] = 4'h0;
-        axis_in_tlast[0][1] = 1'b1;
-        axis_in_tdata[0][1] = 512'h1;
-        axis_in_tvalid[0][1] = 1'b1;
         @(negedge clk);
-        axis_in_tdest[0][1] = 4'h2;
         @(negedge clk);
-        axis_in_tdest[0][1] = 4'h3;
         @(negedge clk);
-        axis_in_tvalid[0][1] = 1'b0;
+        @(negedge clk);
         @(negedge clk);
         @(negedge clk);
         @(negedge clk);
@@ -150,7 +169,7 @@ module axis_mesh_tb();
         .DISABLE_ROUTER_SELFLOOP    (0),
         .FORCE_ROUTER_MLAB          (0)
     ) dut (
-        .clk_noc(clk),
+        .clk_noc(clk_noc),
         .clk_usr(clk),
         .rst_n,
 

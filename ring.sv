@@ -43,7 +43,7 @@ module ring #(
     logic                            credit_router_in   [NUM_ROUTERS][2];
 
     // Assign router input and output ports
-    always_comb begin
+    always @(*) begin
         for (int i = 0; i < NUM_ROUTERS; i++) begin
             // NoC IO Ports
                data_router_in [i][0] =    data_in  [i];
@@ -64,7 +64,14 @@ module ring #(
             is_tail [i] = is_tail_router_out [i][1];
                send [i] =    send_router_out [i][1];
              credit [i] =  credit_router_out [i][1];
+        end
+    end
 
+    // This split in the alwasy block is necessary for Modelsim
+    // to correctly assign the outputs without causing a delay
+    // by triggering some signals only on the next clock edge
+    always @(*) begin
+        for (int i = 0; i < NUM_ROUTERS; i++) begin
             if (i != 0) begin
                    data_router_in   [i][1] =    data  [i - 1];
                    dest_router_in   [i][1] =    dest  [i - 1];

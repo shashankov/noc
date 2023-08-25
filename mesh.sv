@@ -63,13 +63,66 @@ module mesh #(
     logic                            credit_router_in   [NUM_ROWS * NUM_COLS][5];
 
     // Assign router input and output ports
-
-    always_comb begin
+    always @(*) begin
         for (int i = 0; i < NUM_ROWS; i++) begin
             for (int j = 0; j < NUM_COLS; j++) begin
                 int ridx, idx;
                 ridx = i * NUM_COLS + j;
                 idx = 0;
+                // Read from the directional ports
+                // North Side Ports
+                if (i != 0) begin
+                    idx = idx + 1;
+                       data_router_in   [ridx][idx] =    data_south [i - 1][j];
+                       dest_router_in   [ridx][idx] =    dest_south [i - 1][j];
+                    is_tail_router_in   [ridx][idx] = is_tail_south [i - 1][j];
+                       send_router_in   [ridx][idx] =    send_south [i - 1][j];
+                     credit_router_in   [ridx][idx] =  credit_north [i][j];
+                end
+
+                // South Side Ports
+                if (i != (NUM_ROWS - 1)) begin
+                    idx = idx + 1;
+                       data_router_in   [ridx][idx] =    data_north [i + 1][j];
+                       dest_router_in   [ridx][idx] =    dest_north [i + 1][j];
+                    is_tail_router_in   [ridx][idx] = is_tail_north [i + 1][j];
+                       send_router_in   [ridx][idx] =    send_north [i + 1][j];
+                     credit_router_in   [ridx][idx] =  credit_south [i][j];
+                end
+
+                // East Side Ports
+                if (j != (NUM_COLS - 1)) begin
+                    idx = idx + 1;
+                       data_router_in   [ridx][idx] =    data_west  [i][j + 1];
+                       dest_router_in   [ridx][idx] =    dest_west  [i][j + 1];
+                    is_tail_router_in   [ridx][idx] = is_tail_west  [i][j + 1];
+                       send_router_in   [ridx][idx] =    send_west  [i][j + 1];
+                     credit_router_in   [ridx][idx] =  credit_east  [i][j];
+                end
+
+                // West Side Ports
+                if (j != 0) begin
+                    idx = idx + 1;
+                       data_router_in   [ridx][idx] =    data_east  [i][j - 1];
+                       dest_router_in   [ridx][idx] =    dest_east  [i][j - 1];
+                    is_tail_router_in   [ridx][idx] = is_tail_east  [i][j - 1];
+                       send_router_in   [ridx][idx] =    send_east  [i][j - 1];
+                     credit_router_in   [ridx][idx] =  credit_west  [i][j];
+                end
+            end
+        end
+    end
+
+    // This split in the alwasy block is necessary for Modelsim
+    // to correctly assign the outputs without causing a delay
+    // by triggering some signals only on the next clock edge
+    always @(*) begin
+        for (int i = 0; i < NUM_ROWS; i++) begin
+            for (int j = 0; j < NUM_COLS; j++) begin
+                int ridx, idx;
+                ridx = i * NUM_COLS + j;
+                idx = 0;
+
                 // NoC IO Ports
                    data_router_in [ridx][idx] =    data_in  [i][j];
                    dest_router_in [ridx][idx] =    dest_in  [i][j];
@@ -83,15 +136,10 @@ module mesh #(
                    send_out [i][j] =    send_router_out [ridx][idx];
                  credit_out [i][j] =  credit_router_out [ridx][idx];
 
+                // Write to the directional ports
                 // North Side Ports
                 if (i != 0) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_south [i - 1][j];
-                       dest_router_in   [ridx][idx] =    dest_south [i - 1][j];
-                    is_tail_router_in   [ridx][idx] = is_tail_south [i - 1][j];
-                       send_router_in   [ridx][idx] =    send_south [i - 1][j];
-                     credit_router_in   [ridx][idx] =  credit_north [i][j];
-
                        data_north       [i][j] =    data_router_out [ridx][idx];
                        dest_north       [i][j] =    dest_router_out [ridx][idx];
                     is_tail_north       [i][j] = is_tail_router_out [ridx][idx];
@@ -102,12 +150,6 @@ module mesh #(
                 // South Side Ports
                 if (i != (NUM_ROWS - 1)) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_north [i + 1][j];
-                       dest_router_in   [ridx][idx] =    dest_north [i + 1][j];
-                    is_tail_router_in   [ridx][idx] = is_tail_north [i + 1][j];
-                       send_router_in   [ridx][idx] =    send_north [i + 1][j];
-                     credit_router_in   [ridx][idx] =  credit_south [i][j];
-
                        data_south       [i][j] =    data_router_out [ridx][idx];
                        dest_south       [i][j] =    dest_router_out [ridx][idx];
                     is_tail_south       [i][j] = is_tail_router_out [ridx][idx];
@@ -118,12 +160,6 @@ module mesh #(
                 // East Side Ports
                 if (j != (NUM_COLS - 1)) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_west  [i][j + 1];
-                       dest_router_in   [ridx][idx] =    dest_west  [i][j + 1];
-                    is_tail_router_in   [ridx][idx] = is_tail_west  [i][j + 1];
-                       send_router_in   [ridx][idx] =    send_west  [i][j + 1];
-                     credit_router_in   [ridx][idx] =  credit_east  [i][j];
-
                        data_east        [i][j] =    data_router_out [ridx][idx];
                        dest_east        [i][j] =    dest_router_out [ridx][idx];
                     is_tail_east        [i][j] = is_tail_router_out [ridx][idx];
@@ -134,12 +170,6 @@ module mesh #(
                 // West Side Ports
                 if (j != 0) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_east  [i][j - 1];
-                       dest_router_in   [ridx][idx] =    dest_east  [i][j - 1];
-                    is_tail_router_in   [ridx][idx] = is_tail_east  [i][j - 1];
-                       send_router_in   [ridx][idx] =    send_east  [i][j - 1];
-                     credit_router_in   [ridx][idx] =  credit_west  [i][j];
-
                        data_west        [i][j] =    data_router_out [ridx][idx];
                        dest_west        [i][j] =    dest_router_out [ridx][idx];
                     is_tail_west        [i][j] = is_tail_router_out [ridx][idx];
