@@ -130,7 +130,13 @@ module router #(
     // Registered logic to read from the routing table
     always @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            route_table_out[i] <= route_table[route_table_select[i]];
+            // Without the output pipeline, the select signal is held constant
+            // until the tail flit leaves the flit buffer and this ensures that
+            // the output is stable for the duration of the packet. But with
+            // output pipeline, the output of the dest and flit buffers can
+            // flip
+            if (~flit_reg0_valid[i] | pipeline_enable[i])
+                route_table_out[i] <= route_table[route_table_select[i]];
         end
     end
 
@@ -350,17 +356,53 @@ module arbiter_matrix #(
 );
     logic matrix [NUM_INPUTS][NUM_INPUTS];
 
+    // Hold input is expected to high from when the request is made
+    // till before the last cycle of the required grant but to keep
+    // the grants stable during a hold, we need to latch the grants
+    // after the first cycle of the hold and keep them stable till
+    // after the last cycle of the hold while the new grant is generated
+    // This is done by using a delay on the hold signal which is used to
+    // combinationally affect the grant and hold circuit
+    logic [NUM_INPUTS - 1 : 0] hold_delay;
+    logic anyhold;
+    logic [NUM_INPUTS - 1 : 0] grant_int, grant_prev;
+
     logic enable;
     logic deactivate [NUM_INPUTS];
 
-    // Generate grant logic combinationally
+    // Generate instantaneous grant logic combinationally
     always @(*) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            grant[i] = request[i] & ~deactivate[i];
+            grant_int[i] = request[i] & ~deactivate[i];
         end
     end
 
-    // Update grant logic when hold for the granted signal is low
+    // Latch grant and hold logic
+    always @(posedge clk) begin
+        hold_delay <= hold & request;
+        if (rst_n == 1'b0) begin
+            grant_prev <= '0;
+        end else begin
+            grant_prev <= grant;
+        end
+    end
+
+    // Generate anyhold signal
+    always @(*) begin
+        anyhold = 1'b0;
+        for (int i = 0; i < NUM_INPUTS; i++) begin
+            anyhold = anyhold | (hold_delay[i] & grant_prev[i]);
+        end
+    end
+
+    // Generate grant logic
+    always @(*) begin
+        for (int i = 0; i < NUM_INPUTS; i++) begin
+            grant[i] = (hold_delay[i] & grant_prev[i]) ? grant_prev[i] : (grant_int[i] & ~anyhold);
+        end
+    end
+
+    // Update priority matrix when hold for the granted signal is low
     always @(*) begin
         enable = 1'b1;
         for (int i = 0; i < NUM_INPUTS; i++) begin
@@ -404,11 +446,26 @@ module arbiter_matrix #(
 
 endmodule: arbiter_matrix
 
+module onehot_to_binary #(
+    parameter WIDTH = 4
+) (
+    input   wire    [WIDTH - 1 : 0]         onehot,
+    output  logic   [$clog2(WIDTH) - 1 : 0] binary
+);
+    always @(*) begin
+        binary = '0;
+        for (int i = 0; i < WIDTH; i++) begin
+            binary |= onehot[i] ? i : '0;
+        end
+    end
+endmodule: onehot_to_binary
+
 module crossbar_onehot #(
     parameter DATA_WIDTH = 32,
     parameter NUM_INPUTS = 2,
     parameter NUM_OUTPUTS = 2,
-    parameter DISABLE_SELFLOOP = 0
+    parameter DISABLE_SELFLOOP = 0,
+    parameter MODE = "ONEHOT"       // BINARY, ONEHOT, EXPLICIT (supports upto 5x5)
 ) (
     input   wire    [DATA_WIDTH - 1 : 0]    data_in     [NUM_INPUTS],
     input   wire                            valid_in    [NUM_INPUTS],
@@ -419,17 +476,96 @@ module crossbar_onehot #(
     input   wire    [NUM_INPUTS - 1 : 0]    select      [NUM_OUTPUTS]
 );
 
-    always @(*) begin
-        for (int i = 0; i < NUM_OUTPUTS; i++) begin
-            data_out[i] = '0;
-            valid_out[i] = '0;
-            for (int j = 0; j < NUM_INPUTS; j++) begin
-                if (((DISABLE_SELFLOOP == 0) || (i != j)) && select[i][j]) begin
-                    data_out[i] |= data_in[j];
-                    valid_out[i] |= valid_in[j];
+    generate begin: crossbar
+        if (MODE == "BINARY") begin
+            logic [$clog2(NUM_INPUTS) - 1 : 0] select_binary [NUM_OUTPUTS];
+            genvar i;
+            for (i = 0; i < NUM_OUTPUTS; i++) begin: for_outputs
+                onehot_to_binary #(
+                    .WIDTH (NUM_INPUTS)
+                ) onehot_to_binary_inst (
+                    .onehot (select[i]),
+                    .binary (select_binary[i])
+                );
+
+                assign data_out[i] = ((select[i] == '0) || ((DISABLE_SELFLOOP == 1) && (select_binary[i] == i))) ? 'x : data_in[select_binary[i]];
+                assign valid_out[i] = (select[i] == '0) ? 1'b0 : valid_in[select_binary[i]];
+            end
+        end else if (MODE == "ONEHOT") begin
+            always @(*) begin
+                for (int i = 0; i < NUM_OUTPUTS; i++) begin
+                    data_out[i] = '0;
+                    valid_out[i] = '0;
+                    for (int j = 0; j < NUM_INPUTS; j++) begin
+                        if (((DISABLE_SELFLOOP == 0) || (i != j)) && select[i][j]) begin
+                            data_out[i] |= data_in[j];
+                            valid_out[i] |= valid_in[j];
+                        end
+                    end
+                end
+            end
+        end else if (MODE == "EXPLICIT") begin
+            logic [4 : 0] select_expanded [NUM_OUTPUTS];
+
+            logic [DATA_WIDTH - 1 : 0] data_in_expanded[5];
+            logic valid_in_expanded[5];
+
+            genvar i;
+            for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
+                assign data_in_expanded[i] = data_in[i];
+                assign valid_in_expanded[i] = valid_in[i];
+            end
+
+            for (i = 0; i < NUM_OUTPUTS; i++) begin: for_outputs
+                assign select_expanded[i] = {'0, select[i]};
+
+                always @(*) begin
+                    data_out[i] = 'x;
+                    valid_out[i] = 'x;
+                    case (select_expanded[i])
+                        5'b00000: begin
+                            data_out[i] = 'x;
+                            valid_out[i] = '0;
+                        end
+                        5'b00001: begin
+                            if ((i != 0) || (DISABLE_SELFLOOP == 0)) begin
+                                data_out[i] = data_in_expanded[0];
+                                valid_out[i] = valid_in_expanded[0];
+                            end
+                        end
+                        5'b00010: begin
+                            if ((i != 1) || (DISABLE_SELFLOOP == 0)) begin
+                                data_out[i] = data_in_expanded[1];
+                                valid_out[i] = valid_in_expanded[1];
+                            end
+                        end
+                        5'b00100: begin
+                            if ((i != 2) || (DISABLE_SELFLOOP == 0)) begin
+                                data_out[i] = data_in_expanded[2];
+                                valid_out[i] = valid_in_expanded[2];
+                            end
+                        end
+                        5'b01000: begin
+                            if ((i != 3) || (DISABLE_SELFLOOP == 0)) begin
+                                data_out[i] = data_in_expanded[3];
+                                valid_out[i] = valid_in_expanded[3];
+                            end
+                        end
+                        5'b10000: begin
+                            if ((i != 4) || (DISABLE_SELFLOOP == 0)) begin
+                                data_out[i] = data_in_expanded[4];
+                                valid_out[i] = valid_in_expanded[4];
+                            end
+                        end
+                        default: begin
+                            data_out[i] = 'x;
+                            valid_out[i] = 1'bx;
+                        end
+                    endcase
                 end
             end
         end
     end
+    endgenerate
 
 endmodule: crossbar_onehot
