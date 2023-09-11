@@ -130,11 +130,6 @@ module router #(
     // Registered logic to read from the routing table
     always @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            // Without the output pipeline, the select signal is held constant
-            // until the tail flit leaves the flit buffer and this ensures that
-            // the output is stable for the duration of the packet. But with
-            // output pipeline, the output of the dest and flit buffers can
-            // flip
             if (~flit_reg0_valid[i] | pipeline_enable[i])
                 route_table_out[i] <= route_table[route_table_select[i]];
         end

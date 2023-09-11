@@ -17,7 +17,7 @@ def generate_table(num_routers, router_id):
 
 if __name__ == "__main__":
     if (len(sys.argv) != 3):
-        print("Usage: ./gen_mesh_table.py <num_routers> <file_prefix>")
+        print("Usage: ./gen_double_ring_table.py <num_routers> <file_prefix>")
         sys.exit(1)
 
     num_routers = int(sys.argv[1])
