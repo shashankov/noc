@@ -10,8 +10,8 @@ module shim_tb ();
     end
 
     initial begin
-        clk_usr = 1'b0;
-        forever #8 clk_usr = ~clk_usr;
+        clk_usr = 1'b1;
+        forever #2 clk_usr = ~clk_usr;
     end
 
     logic axis_tvalid_in, axis_tready_in, axis_tlast_in;
@@ -67,8 +67,9 @@ module shim_tb ();
         .TDEST_WIDTH            (3),
         .TDATA_WIDTH            (512),
         .SERIALIZATION_FACTOR   (4),
-        .BUFFER_DEPTH           (2),
-        .FLIT_BUFFER_DEPTH      (4)
+        .BUFFER_DEPTH           (4),
+        .FLIT_BUFFER_DEPTH      (4),
+        .SINGLE_CLOCK           (1)
     ) shim_in (
         .clk_usr,
         .clk_noc,
@@ -93,8 +94,9 @@ module shim_tb ();
         .TDEST_WIDTH            (3),
         .TDATA_WIDTH            (512),
         .SERIALIZATION_FACTOR   (4),
-        .BUFFER_DEPTH           (2),
-        .FLIT_BUFFER_DEPTH      (4)
+        .BUFFER_DEPTH           (4),
+        .FLIT_BUFFER_DEPTH      (4),
+        .SINGLE_CLOCK           (1)
     ) shim_out (
         .clk_usr,
         .clk_noc,

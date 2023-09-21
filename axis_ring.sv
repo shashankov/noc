@@ -6,9 +6,14 @@ module axis_ring #(
     parameter TID_WIDTH = 2,
     parameter TDEST_WIDTH = 4,
     parameter TDATA_WIDTH = 512,
+
     parameter SERIALIZATION_FACTOR = 4,
-    parameter SERDES_BUFFER_DEPTH = 4,
+    parameter CLKCROSS_FACTOR = 1,
+    parameter SINGLE_CLOCK = 0,
+    parameter SERDES_IN_BUFFER_DEPTH = 4,
+    parameter SERDES_OUT_BUFFER_DEPTH = 4,
     parameter SERDES_EXTRA_SYNC_STAGES = 0,
+    parameter SERDES_FORCE_MLAB = 0,
 
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/ring_4/",
@@ -80,9 +85,12 @@ module axis_ring #(
                 .TDEST_WIDTH            (DEST_WIDTH),
                 .TDATA_WIDTH            (TDATA_WIDTH),
                 .SERIALIZATION_FACTOR   (SERIALIZATION_FACTOR),
-                .BUFFER_DEPTH           (SERDES_BUFFER_DEPTH),
+                .CLKCROSS_FACTOR        (CLKCROSS_FACTOR),
+                .SINGLE_CLOCK           (SINGLE_CLOCK),
+                .BUFFER_DEPTH           (SERDES_IN_BUFFER_DEPTH),
                 .FLIT_BUFFER_DEPTH      (FLIT_BUFFER_DEPTH),
-                .EXTRA_SYNC_STAGES      (SERDES_EXTRA_SYNC_STAGES)
+                .EXTRA_SYNC_STAGES      (SERDES_EXTRA_SYNC_STAGES),
+                .FORCE_MLAB             (SERDES_FORCE_MLAB)
             ) shim_in (
                 .clk_usr,
                 .clk_noc,
@@ -107,9 +115,12 @@ module axis_ring #(
                 .TDEST_WIDTH            (DEST_WIDTH),
                 .TDATA_WIDTH            (TDATA_WIDTH),
                 .SERIALIZATION_FACTOR   (SERIALIZATION_FACTOR),
-                .BUFFER_DEPTH           (SERDES_BUFFER_DEPTH),
+                .CLKCROSS_FACTOR        (CLKCROSS_FACTOR),
+                .SINGLE_CLOCK           (SINGLE_CLOCK),
+                .BUFFER_DEPTH           (SERDES_OUT_BUFFER_DEPTH),
                 .FLIT_BUFFER_DEPTH      (FLIT_BUFFER_DEPTH),
-                .EXTRA_SYNC_STAGES      (SERDES_EXTRA_SYNC_STAGES)
+                .EXTRA_SYNC_STAGES      (SERDES_EXTRA_SYNC_STAGES),
+                .FORCE_MLAB             (SERDES_FORCE_MLAB)
             ) shim_out (
                 .clk_usr,
                 .clk_noc,

@@ -63,40 +63,40 @@ sim:/shim_tb/is_tail \
 sim:/shim_tb/send \
 sim:/shim_tb/credit
 
-add wave -position insertpoint  \
-sim:/shim_tb/shim_in/dest_buffer_out \
-sim:/shim_tb/shim_in/data_buffer_wrfull \
-sim:/shim_tb/shim_in/data_buffer_rdempty \
-sim:/shim_tb/shim_in/data_buffer_rdreq \
-sim:/shim_tb/shim_in/credit_count \
-sim:/shim_tb/shim_in/ser_count \
-sim:/shim_tb/shim_in/dest_buffer_rdreq \
-sim:/shim_tb/shim_in/dest_buffer_rdempty
+# add wave -position insertpoint  \
+# sim:/shim_tb/shim_in/dest_buffer_out \
+# sim:/shim_tb/shim_in/data_buffer_wrfull \
+# sim:/shim_tb/shim_in/data_buffer_rdempty \
+# sim:/shim_tb/shim_in/data_buffer_rdreq \
+# sim:/shim_tb/shim_in/credit_count \
+# sim:/shim_tb/shim_in/ser_count \
+# sim:/shim_tb/shim_in/dest_buffer_rdreq \
+# sim:/shim_tb/shim_in/dest_buffer_rdempty
 
-add wave -position insertpoint  \
-sim:/shim_tb/shim_out/dest_buffer_out \
-sim:/shim_tb/shim_out/dest_buffer_rdempty \
-sim:/shim_tb/shim_out/dest_buffer_wrreq \
-sim:/shim_tb/shim_out/data_buffer_rdempty \
-sim:/shim_tb/shim_out/data_buffer_wrusedw \
-sim:/shim_tb/shim_out/credit_count \
-sim:/shim_tb/shim_out/ser_count \
-sim:/shim_tb/shim_out/credit_count_reg
+# add wave -position insertpoint  \
+# sim:/shim_tb/shim_out/dest_buffer_out \
+# sim:/shim_tb/shim_out/dest_buffer_rdempty \
+# sim:/shim_tb/shim_out/dest_buffer_wrreq \
+# sim:/shim_tb/shim_out/data_buffer_rdempty \
+# sim:/shim_tb/shim_out/data_buffer_wrusedw \
+# sim:/shim_tb/shim_out/credit_count \
+# sim:/shim_tb/shim_out/ser_count \
+# sim:/shim_tb/shim_out/credit_count_reg
 
-add wave -position insertpoint  \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/data \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdclk \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrclk \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/aclr \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdreq \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrreq \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdfull \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrfull \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdempty \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrempty \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdusedw \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrusedw \
-sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/q
+# add wave -position insertpoint  \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/data \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdclk \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrclk \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/aclr \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdreq \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrreq \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdfull \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrfull \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdempty \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrempty \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/rdusedw \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/wrusedw \
+# sim:/shim_tb/shim_out/data_buffer/dcfifo_mixed_widths_component/q
 
 # Run the simulation.
 run -a

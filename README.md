@@ -120,9 +120,13 @@ NoC Topology specific parameters are same as in the [NoC section](#noc) and not 
 | TID_WIDTH                 | Width of AXI-Stream tid signal |
 | TDEST_WIDTH               | Width of AXI-Stream tdest signal |
 | TDATA_WIDTH               | Width of AXI-Stream tdata signal |
-| SERIALIZATION_FACTOR      | Factor to divide the TADTA_WIDTH by to obtain the FLIT_WIDTH for the NoC |
-| SERDES_BUFFER_DEPTH       | Serializer/Deserializer buffer depth (in units of TDATA_WIDTH words) |
+| SERIALIZATION_FACTOR      | Factor to serialize in the user clock domain (doesn't use memory bits) |
+| CLKCROSS_FACTOR           | Factor to serialize while crossing from the user to the NoC clock domain (uses mixed-width DC FIFO)  |
+| SINGLE_CLOCK              | (0 / 1) Specfies whether the NoC and user clock are the same (uses single-clock FIFO instead of dual-clock FIFO) |
+| SERDES_IN_BUFFER_DEPTH    | Serializer buffer depth (in units of TDATA_WIDTH words) |
+| SERDES_OUT_BUFFER_DEPTH   | Deserializer buffer depth (in units of TDATA_WIDTH words) |
 | SERDES_EXTRA_SYNC_STAGES  | Asynchronous FIFO extra metastability synchronization stages (-2 disables synchronization and may be used for synchronized clocks) |
+| SERDES_FORCE_MLAB         | Forces the buffers in the serdes modules to use MLABs (LUTRAM) instead of M20Ks (BRAM) if possible (mixed-width dual-clock FIFO does not support this) |
 | | |
 | FLIT_BUFFER_DEPTH         | See [NoC parameters](#generic-noc-parameters)
 | ROUTING_TABLE_PREFIX      | See [NoC parameters](#generic-noc-parameters)

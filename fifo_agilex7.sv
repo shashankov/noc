@@ -28,7 +28,8 @@ module  fifo_agilex7 #(
     wrreq,
     empty,
     full,
-    q);
+    q,
+    usedw);
 
     input    clock;
     input  [WIDTH-1:0]  data;
@@ -38,6 +39,7 @@ module  fifo_agilex7 #(
     output   empty;
     output   full;
     output [WIDTH-1:0]  q;
+    output [$clog2(DEPTH) - 1 : 0] usedw;
 
     wire  sub_wire0;
     wire  sub_wire1;
@@ -59,7 +61,7 @@ module  fifo_agilex7 #(
                 .almost_empty (),
                 .almost_full (),
                 .eccstatus (),
-                .usedw ());
+                .usedw (usedw));
     defparam
         scfifo_component.add_ram_output_register  = "ON",
         scfifo_component.enable_ecc  = "FALSE",
