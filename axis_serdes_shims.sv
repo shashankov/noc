@@ -76,7 +76,7 @@ module axis_serializer_shim_in #(
                 .BUFFER_DEPTH       (BUFFER_DEPTH * SERIALIZATION_FACTOR),
                 .FLIT_BUFFER_DEPTH  (FLIT_BUFFER_DEPTH),
                 .FORCE_MLAB         (FORCE_MLAB))
-            shim_in_inst (
+            shim_inst (
                 .clk            (clk_usr),
                 .rst_n          (rst_n_usr_sync),
 
@@ -204,7 +204,7 @@ module axis_deserializer_shim_out #(
                 .BUFFER_DEPTH       (BUFFER_DEPTH * SERIALIZATION_FACTOR),
                 .FLIT_BUFFER_DEPTH  (FLIT_BUFFER_DEPTH),
                 .FORCE_MLAB         (FORCE_MLAB))
-            shim_out_inst (
+            shim_inst (
                 .clk            (clk_usr),
                 .rst_n          (rst_n_usr_sync),
 

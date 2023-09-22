@@ -41,7 +41,7 @@ module axis_mesh #(
     output  logic   [TID_WIDTH - 1 : 0]     axis_out_tid    [NUM_ROWS][NUM_COLS],
     output  logic   [TDEST_WIDTH - 1 : 0]   axis_out_tdest  [NUM_ROWS][NUM_COLS]
 );
-    localparam FLIT_WIDTH = TDATA_WIDTH / SERIALIZATION_FACTOR;
+    localparam FLIT_WIDTH = TDATA_WIDTH / SERIALIZATION_FACTOR / CLKCROSS_FACTOR;
     localparam DEST_WIDTH = TDEST_WIDTH + TID_WIDTH;
 
     // Declarations

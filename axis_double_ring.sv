@@ -40,7 +40,7 @@ module axis_double_ring #(
     output  logic   [TID_WIDTH - 1 : 0]     axis_out_tid    [NUM_ROUTERS],
     output  logic   [TDEST_WIDTH - 1 : 0]   axis_out_tdest  [NUM_ROUTERS]
 );
-    localparam FLIT_WIDTH = TDATA_WIDTH / SERIALIZATION_FACTOR;
+    localparam FLIT_WIDTH = TDATA_WIDTH / SERIALIZATION_FACTOR / CLKCROSS_FACTOR;
     localparam DEST_WIDTH = TDEST_WIDTH + TID_WIDTH;
 
     // Declarations
