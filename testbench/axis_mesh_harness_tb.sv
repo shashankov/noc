@@ -62,7 +62,7 @@ module axis_mesh_harness_tb();
     initial begin
         clk_noc = 0;
         forever begin
-            #2.5 clk_noc = ~clk_noc;
+            #5 clk_noc = ~clk_noc;
         end
     end
 
@@ -127,7 +127,7 @@ module axis_mesh_harness_tb();
                 .rst_n,
 
                 .load           (16'b1 << 14),
-                .num_packets    (32'b1 << 10),
+                .num_packets    (16'b1 << 10),
 
                 .start          (start[i][j]),
                 .ticks,
@@ -176,7 +176,10 @@ module axis_mesh_harness_tb();
         .TDEST_WIDTH                (TDEST_WIDTH),
         .TDATA_WIDTH                (DATA_WIDTH),
         .SERIALIZATION_FACTOR       (SERIALIZATION_FACTOR),
-        .SERDES_BUFFER_DEPTH        (4),
+        .CLKCROSS_FACTOR            (1),
+        .SINGLE_CLOCK               (1),
+        .SERDES_IN_BUFFER_DEPTH     (4),
+        .SERDES_OUT_BUFFER_DEPTH    (4),
         .SERDES_EXTRA_SYNC_STAGES   (0),
 
         .FLIT_BUFFER_DEPTH          (4),

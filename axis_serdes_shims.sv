@@ -718,7 +718,7 @@ module axis_serializer #(
     end
 
     always @(posedge clk) begin
-        if ((ser_count == '0) && (axis_in_tready & axis_in_tvalid)) begin
+        if (axis_in_tready & axis_in_tvalid) begin
             tdata_buffer <= axis_in_tdata;
             tdest_buffer <= axis_in_tdest;
             tlast_buffer <= axis_in_tlast;
