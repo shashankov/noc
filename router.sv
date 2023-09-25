@@ -56,6 +56,7 @@ module router #(
     logic [NUM_INPUTS - 1 : 0] hold        [NUM_OUTPUTS];
     logic [NUM_INPUTS - 1 : 0] grant       [NUM_OUTPUTS];
     logic [NUM_INPUTS - 1 : 0] grant_mask  [NUM_OUTPUTS];
+    logic [NUM_INPUTS - 1 : 0] grant_input;
 
     // Input pipeline signals
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  flit_reg0[NUM_INPUTS];
@@ -96,7 +97,7 @@ module router #(
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             // Pipeline enable
-            assign pipeline_enable[i] = grant[route_table_out[i]][i] & (send_out[route_table_out[i]] | (~data_out_reg_valid[route_table_out[i]] & (PIPELINE_OUTPUT == 1)));
+            assign pipeline_enable[i] = grant_input[i] & (send_out[route_table_out[i]] | (~data_out_reg_valid[route_table_out[i]] & (PIPELINE_OUTPUT == 1)));
 
             // Read flit buffer when the pipeline is free
             assign flit_buffer_rdreq[i] = ~flit_buffer_empty[i] & (~flit_reg0_valid[i] | pipeline_enable[i]);
@@ -115,6 +116,18 @@ module router #(
         end
     end
     endgenerate
+
+    // grant_input is a combined signal which indicates whether the input
+    // has been granted any request. Since an input only requests one output
+    // at any cycle, this signal can used to generate the pipeline enable
+    always @(*) begin
+        grant_input = '0;
+        for (int i = 0; i < NUM_INPUTS; i++) begin
+            for (int j = 0; j < NUM_OUTPUTS; j++) begin
+                grant_input[i] = grant_input[i] | grant[j][i];
+            end
+        end
+    end
 
     // Credit counter
     always @(posedge clk) begin
