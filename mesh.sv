@@ -4,6 +4,7 @@ module mesh #(
     parameter DEST_WIDTH = 4,           // clog2(NUM_ROWS * NUM_COLS)
     parameter FLIT_WIDTH = 128,
     parameter FLIT_BUFFER_DEPTH = 4,
+    parameter PIPELINE_LINKS = 0,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/",
     parameter ROUTER_PIPELINE_OUTPUT = 1,
     parameter ROUTER_DISABLE_SELFLOOP = 1,
@@ -26,29 +27,53 @@ module mesh #(
 );
 
     // Declare all intermediate signals of routers
-    logic   [FLIT_WIDTH - 1 : 0]       data_north   [NUM_ROWS][NUM_COLS];
-    logic   [DEST_WIDTH - 1 : 0]       dest_north   [NUM_ROWS][NUM_COLS];
-    logic                           is_tail_north   [NUM_ROWS][NUM_COLS];
-    logic                              send_north   [NUM_ROWS][NUM_COLS];
-    logic                            credit_north   [NUM_ROWS][NUM_COLS];
+    logic   [FLIT_WIDTH - 1 : 0]       data_north_in    [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_north_in    [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_north_in    [NUM_ROWS][NUM_COLS];
+    logic                              send_north_in    [NUM_ROWS][NUM_COLS];
+    logic                            credit_north_in    [NUM_ROWS][NUM_COLS];
 
-    logic   [FLIT_WIDTH - 1 : 0]       data_south   [NUM_ROWS][NUM_COLS];
-    logic   [DEST_WIDTH - 1 : 0]       dest_south   [NUM_ROWS][NUM_COLS];
-    logic                           is_tail_south   [NUM_ROWS][NUM_COLS];
-    logic                              send_south   [NUM_ROWS][NUM_COLS];
-    logic                            credit_south   [NUM_ROWS][NUM_COLS];
+    logic   [FLIT_WIDTH - 1 : 0]       data_north_out   [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_north_out   [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_north_out   [NUM_ROWS][NUM_COLS];
+    logic                              send_north_out   [NUM_ROWS][NUM_COLS];
+    logic                            credit_north_out   [NUM_ROWS][NUM_COLS];
 
-    logic   [FLIT_WIDTH - 1 : 0]       data_east    [NUM_ROWS][NUM_COLS];
-    logic   [DEST_WIDTH - 1 : 0]       dest_east    [NUM_ROWS][NUM_COLS];
-    logic                           is_tail_east    [NUM_ROWS][NUM_COLS];
-    logic                              send_east    [NUM_ROWS][NUM_COLS];
-    logic                            credit_east    [NUM_ROWS][NUM_COLS];
+    logic   [FLIT_WIDTH - 1 : 0]       data_south_in    [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_south_in    [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_south_in    [NUM_ROWS][NUM_COLS];
+    logic                              send_south_in    [NUM_ROWS][NUM_COLS];
+    logic                            credit_south_in    [NUM_ROWS][NUM_COLS];
 
-    logic   [FLIT_WIDTH - 1 : 0]       data_west    [NUM_ROWS][NUM_COLS];
-    logic   [DEST_WIDTH - 1 : 0]       dest_west    [NUM_ROWS][NUM_COLS];
-    logic                           is_tail_west    [NUM_ROWS][NUM_COLS];
-    logic                              send_west    [NUM_ROWS][NUM_COLS];
-    logic                            credit_west    [NUM_ROWS][NUM_COLS];
+    logic   [FLIT_WIDTH - 1 : 0]       data_south_out   [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_south_out   [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_south_out   [NUM_ROWS][NUM_COLS];
+    logic                              send_south_out   [NUM_ROWS][NUM_COLS];
+    logic                            credit_south_out   [NUM_ROWS][NUM_COLS];
+
+    logic   [FLIT_WIDTH - 1 : 0]       data_east_in     [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_east_in     [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_east_in     [NUM_ROWS][NUM_COLS];
+    logic                              send_east_in     [NUM_ROWS][NUM_COLS];
+    logic                            credit_east_in     [NUM_ROWS][NUM_COLS];
+
+    logic   [FLIT_WIDTH - 1 : 0]       data_east_out    [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_east_out    [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_east_out    [NUM_ROWS][NUM_COLS];
+    logic                              send_east_out    [NUM_ROWS][NUM_COLS];
+    logic                            credit_east_out    [NUM_ROWS][NUM_COLS];
+
+    logic   [FLIT_WIDTH - 1 : 0]       data_west_in     [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_west_in     [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_west_in     [NUM_ROWS][NUM_COLS];
+    logic                              send_west_in     [NUM_ROWS][NUM_COLS];
+    logic                            credit_west_in     [NUM_ROWS][NUM_COLS];
+
+    logic   [FLIT_WIDTH - 1 : 0]       data_west_out    [NUM_ROWS][NUM_COLS];
+    logic   [DEST_WIDTH - 1 : 0]       dest_west_out    [NUM_ROWS][NUM_COLS];
+    logic                           is_tail_west_out    [NUM_ROWS][NUM_COLS];
+    logic                              send_west_out    [NUM_ROWS][NUM_COLS];
+    logic                            credit_west_out    [NUM_ROWS][NUM_COLS];
 
     // Declare packed router input and output ports
     logic   [FLIT_WIDTH - 1 : 0]       data_router_in   [NUM_ROWS * NUM_COLS][5];
@@ -74,41 +99,41 @@ module mesh #(
                 // North Side Ports
                 if (i != 0) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_south [i - 1][j];
-                       dest_router_in   [ridx][idx] =    dest_south [i - 1][j];
-                    is_tail_router_in   [ridx][idx] = is_tail_south [i - 1][j];
-                       send_router_in   [ridx][idx] =    send_south [i - 1][j];
-                     credit_router_in   [ridx][idx] =  credit_north [i][j];
+                       data_router_in   [ridx][idx] =    data_south_out [i - 1][j];
+                       dest_router_in   [ridx][idx] =    dest_south_out [i - 1][j];
+                    is_tail_router_in   [ridx][idx] = is_tail_south_out [i - 1][j];
+                       send_router_in   [ridx][idx] =    send_south_out [i - 1][j];
+                     credit_router_in   [ridx][idx] =  credit_north_out [i][j];
                 end
 
                 // South Side Ports
                 if (i != (NUM_ROWS - 1)) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_north [i + 1][j];
-                       dest_router_in   [ridx][idx] =    dest_north [i + 1][j];
-                    is_tail_router_in   [ridx][idx] = is_tail_north [i + 1][j];
-                       send_router_in   [ridx][idx] =    send_north [i + 1][j];
-                     credit_router_in   [ridx][idx] =  credit_south [i][j];
+                       data_router_in   [ridx][idx] =    data_north_out [i + 1][j];
+                       dest_router_in   [ridx][idx] =    dest_north_out [i + 1][j];
+                    is_tail_router_in   [ridx][idx] = is_tail_north_out [i + 1][j];
+                       send_router_in   [ridx][idx] =    send_north_out [i + 1][j];
+                     credit_router_in   [ridx][idx] =  credit_south_out [i][j];
                 end
 
                 // East Side Ports
                 if (j != (NUM_COLS - 1)) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_west  [i][j + 1];
-                       dest_router_in   [ridx][idx] =    dest_west  [i][j + 1];
-                    is_tail_router_in   [ridx][idx] = is_tail_west  [i][j + 1];
-                       send_router_in   [ridx][idx] =    send_west  [i][j + 1];
-                     credit_router_in   [ridx][idx] =  credit_east  [i][j];
+                       data_router_in   [ridx][idx] =    data_west_out  [i][j + 1];
+                       dest_router_in   [ridx][idx] =    dest_west_out  [i][j + 1];
+                    is_tail_router_in   [ridx][idx] = is_tail_west_out  [i][j + 1];
+                       send_router_in   [ridx][idx] =    send_west_out  [i][j + 1];
+                     credit_router_in   [ridx][idx] =  credit_east_out  [i][j];
                 end
 
                 // West Side Ports
                 if (j != 0) begin
                     idx = idx + 1;
-                       data_router_in   [ridx][idx] =    data_east  [i][j - 1];
-                       dest_router_in   [ridx][idx] =    dest_east  [i][j - 1];
-                    is_tail_router_in   [ridx][idx] = is_tail_east  [i][j - 1];
-                       send_router_in   [ridx][idx] =    send_east  [i][j - 1];
-                     credit_router_in   [ridx][idx] =  credit_west  [i][j];
+                       data_router_in   [ridx][idx] =    data_east_out  [i][j - 1];
+                       dest_router_in   [ridx][idx] =    dest_east_out  [i][j - 1];
+                    is_tail_router_in   [ridx][idx] = is_tail_east_out  [i][j - 1];
+                       send_router_in   [ridx][idx] =    send_east_out  [i][j - 1];
+                     credit_router_in   [ridx][idx] =  credit_west_out  [i][j];
                 end
             end
         end
@@ -141,41 +166,41 @@ module mesh #(
                 // North Side Ports
                 if (i != 0) begin
                     idx = idx + 1;
-                       data_north       [i][j] =    data_router_out [ridx][idx];
-                       dest_north       [i][j] =    dest_router_out [ridx][idx];
-                    is_tail_north       [i][j] = is_tail_router_out [ridx][idx];
-                       send_north       [i][j] =    send_router_out [ridx][idx];
-                     credit_south   [i - 1][j] =  credit_router_out [ridx][idx];
+                       data_north_in       [i][j] =    data_router_out [ridx][idx];
+                       dest_north_in       [i][j] =    dest_router_out [ridx][idx];
+                    is_tail_north_in       [i][j] = is_tail_router_out [ridx][idx];
+                       send_north_in       [i][j] =    send_router_out [ridx][idx];
+                     credit_south_in   [i - 1][j] =  credit_router_out [ridx][idx];
                 end
 
                 // South Side Ports
                 if (i != (NUM_ROWS - 1)) begin
                     idx = idx + 1;
-                       data_south       [i][j] =    data_router_out [ridx][idx];
-                       dest_south       [i][j] =    dest_router_out [ridx][idx];
-                    is_tail_south       [i][j] = is_tail_router_out [ridx][idx];
-                       send_south       [i][j] =    send_router_out [ridx][idx];
-                     credit_north   [i + 1][j] =  credit_router_out [ridx][idx];
+                       data_south_in       [i][j] =    data_router_out [ridx][idx];
+                       dest_south_in       [i][j] =    dest_router_out [ridx][idx];
+                    is_tail_south_in       [i][j] = is_tail_router_out [ridx][idx];
+                       send_south_in       [i][j] =    send_router_out [ridx][idx];
+                     credit_north_in   [i + 1][j] =  credit_router_out [ridx][idx];
                 end
 
                 // East Side Ports
                 if (j != (NUM_COLS - 1)) begin
                     idx = idx + 1;
-                       data_east        [i][j] =    data_router_out [ridx][idx];
-                       dest_east        [i][j] =    dest_router_out [ridx][idx];
-                    is_tail_east        [i][j] = is_tail_router_out [ridx][idx];
-                       send_east        [i][j] =    send_router_out [ridx][idx];
-                     credit_west    [i][j + 1] =  credit_router_out [ridx][idx];
+                       data_east_in        [i][j] =    data_router_out [ridx][idx];
+                       dest_east_in        [i][j] =    dest_router_out [ridx][idx];
+                    is_tail_east_in        [i][j] = is_tail_router_out [ridx][idx];
+                       send_east_in        [i][j] =    send_router_out [ridx][idx];
+                     credit_west_in    [i][j + 1] =  credit_router_out [ridx][idx];
                 end
 
                 // West Side Ports
                 if (j != 0) begin
                     idx = idx + 1;
-                       data_west        [i][j] =    data_router_out [ridx][idx];
-                       dest_west        [i][j] =    dest_router_out [ridx][idx];
-                    is_tail_west        [i][j] = is_tail_router_out [ridx][idx];
-                       send_west        [i][j] =    send_router_out [ridx][idx];
-                     credit_east    [i][j - 1] =  credit_router_out [ridx][idx];
+                       data_west_in        [i][j] =    data_router_out [ridx][idx];
+                       dest_west_in        [i][j] =    dest_router_out [ridx][idx];
+                    is_tail_west_in        [i][j] = is_tail_router_out [ridx][idx];
+                       send_west_in        [i][j] =    send_router_out [ridx][idx];
+                     credit_east_in    [i][j - 1] =  credit_router_out [ridx][idx];
                 end
             end
         end
@@ -222,6 +247,94 @@ module mesh #(
                     .is_tail_out    (is_tail_router_out[ridx][0 : num_io - 1]),
                     .send_out       (   send_router_out[ridx][0 : num_io - 1]),
                     .credit_in      ( credit_router_in [ridx][0 : num_io - 1])
+                );
+            end
+        end
+    end
+    endgenerate
+
+    generate begin: links_gen
+        genvar i, j;
+        for (i = 0; i < NUM_ROWS; i = i + 1) begin: for_rows
+            for (j = 0; j < NUM_COLS; j = j + 1) begin: for_cols
+                noc_pipeline_link #(
+                    .NUM_PIPELINE(PIPELINE_LINKS),
+                    .FLIT_WIDTH(FLIT_WIDTH),
+                    .DEST_WIDTH(DEST_WIDTH))
+                north_link_inst (
+                    .clk         (clk),
+
+                    .data_in     (data_north_in[i][j]),
+                    .dest_in     (dest_north_in[i][j]),
+                    .is_tail_in  (is_tail_north_in[i][j]),
+                    .send_in     (send_north_in[i][j]),
+                    .credit_out  (credit_north_out[i][j]),
+
+                    .data_out    (data_north_out[i][j]),
+                    .dest_out    (dest_north_out[i][j]),
+                    .is_tail_out (is_tail_north_out[i][j]),
+                    .send_out    (send_north_out[i][j]),
+                    .credit_in   (credit_north_in[i][j])
+                );
+
+                noc_pipeline_link #(
+                    .NUM_PIPELINE(PIPELINE_LINKS),
+                    .FLIT_WIDTH(FLIT_WIDTH),
+                    .DEST_WIDTH(DEST_WIDTH))
+                south_link_inst (
+                    .clk         (clk),
+
+                    .data_in     (data_south_in[i][j]),
+                    .dest_in     (dest_south_in[i][j]),
+                    .is_tail_in  (is_tail_south_in[i][j]),
+                    .send_in     (send_south_in[i][j]),
+                    .credit_out  (credit_south_out[i][j]),
+
+                    .data_out    (data_south_out[i][j]),
+                    .dest_out    (dest_south_out[i][j]),
+                    .is_tail_out (is_tail_south_out[i][j]),
+                    .send_out    (send_south_out[i][j]),
+                    .credit_in   (credit_south_in[i][j])
+                );
+
+                noc_pipeline_link #(
+                    .NUM_PIPELINE(PIPELINE_LINKS),
+                    .FLIT_WIDTH(FLIT_WIDTH),
+                    .DEST_WIDTH(DEST_WIDTH))
+                east_link_inst (
+                    .clk         (clk),
+
+                    .data_in     (data_east_in[i][j]),
+                    .dest_in     (dest_east_in[i][j]),
+                    .is_tail_in  (is_tail_east_in[i][j]),
+                    .send_in     (send_east_in[i][j]),
+                    .credit_out  (credit_east_out[i][j]),
+
+                    .data_out    (data_east_out[i][j]),
+                    .dest_out    (dest_east_out[i][j]),
+                    .is_tail_out (is_tail_east_out[i][j]),
+                    .send_out    (send_east_out[i][j]),
+                    .credit_in   (credit_east_in[i][j])
+                );
+
+                noc_pipeline_link #(
+                    .NUM_PIPELINE(PIPELINE_LINKS),
+                    .FLIT_WIDTH(FLIT_WIDTH),
+                    .DEST_WIDTH(DEST_WIDTH))
+                west_link_inst (
+                    .clk         (clk),
+
+                    .data_in     (data_west_in[i][j]),
+                    .dest_in     (dest_west_in[i][j]),
+                    .is_tail_in  (is_tail_west_in[i][j]),
+                    .send_in     (send_west_in[i][j]),
+                    .credit_out  (credit_west_out[i][j]),
+
+                    .data_out    (data_west_out[i][j]),
+                    .dest_out    (dest_west_out[i][j]),
+                    .is_tail_out (is_tail_west_out[i][j]),
+                    .send_out    (send_west_out[i][j]),
+                    .credit_in   (credit_west_in[i][j])
                 );
             end
         end

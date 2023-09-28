@@ -172,6 +172,7 @@ module axis_mesh_harness_tb();
     axis_mesh #(
         .NUM_ROWS                   (NUM_ROWS),
         .NUM_COLS                   (NUM_COLS),
+        .PIPELINE_LINKS             (1),
 
         .TDEST_WIDTH                (TDEST_WIDTH),
         .TDATA_WIDTH                (DATA_WIDTH),

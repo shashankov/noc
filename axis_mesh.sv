@@ -1,8 +1,10 @@
 module axis_mesh #(
     parameter RESET_SYNC_EXTEND_CYCLES = 2,
+    parameter RESET_NUM_OUTPUT_REGISTERS = 1,
 
     parameter NUM_ROWS = 4,
     parameter NUM_COLS = 4,
+    parameter PIPELINE_LINKS = 0,
 
     parameter TID_WIDTH = 2,
     parameter TDEST_WIDTH = 4,
@@ -66,7 +68,8 @@ module axis_mesh #(
 
     // Instantiations
     reset_synchronizer #(
-        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES)
+        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES),
+        .NUM_OUTPUT_REGISTERS(RESET_NUM_OUTPUT_REGISTERS)
     ) usr_sync (
         .reset_async    (~rst_n),
         .sync_clk       (clk_usr),
@@ -74,7 +77,8 @@ module axis_mesh #(
     );
 
     reset_synchronizer #(
-        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES)
+        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES),
+        .NUM_OUTPUT_REGISTERS(RESET_NUM_OUTPUT_REGISTERS)
     ) noc_sync (
         .reset_async    (~rst_n),
         .sync_clk       (clk_noc),
@@ -152,6 +156,7 @@ module axis_mesh #(
     mesh #(
         .NUM_ROWS                  (NUM_ROWS),
         .NUM_COLS                  (NUM_COLS),
+        .PIPELINE_LINKS            (PIPELINE_LINKS),
         .DEST_WIDTH                (DEST_WIDTH),
         .FLIT_WIDTH                (FLIT_WIDTH),
         .FLIT_BUFFER_DEPTH         (FLIT_BUFFER_DEPTH),

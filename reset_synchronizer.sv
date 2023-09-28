@@ -1,12 +1,13 @@
 module reset_synchronizer #(
-    parameter NUM_EXTEND_CYCLES = 4
+    parameter NUM_EXTEND_CYCLES = 4,
+    parameter NUM_OUTPUT_REGISTERS = 1
 ) (
     input wire reset_async,
     input wire sync_clk,
     output logic reset_sync
 );
 
-    logic reset_async_reg, reset_async_reg2;
+    logic reset_async_reg, reset_async_reg2, reset_sync_int;
 
     always @(posedge sync_clk) begin
         reset_async_reg <= reset_async;
@@ -25,13 +26,29 @@ module reset_synchronizer #(
             end
 
             always @(*) begin
-                reset_sync = reset_async_reg2;
+                reset_sync_int = reset_async_reg2;
                 for (int i = 0; i < NUM_EXTEND_CYCLES; i++) begin
-                    reset_sync = reset_sync | reset_extend[i];
+                    reset_sync_int = reset_sync_int | reset_extend[i];
                 end
             end
         end else begin
-            assign reset_sync = reset_async_reg2;
+            assign reset_sync_int = reset_async_reg2;
+        end
+    end
+    endgenerate
+
+    generate begin: output_registers_gen
+        if (NUM_OUTPUT_REGISTERS > 0) begin
+            logic reset_sync_reg[NUM_OUTPUT_REGISTERS];
+
+            always @(posedge sync_clk) begin
+                reset_sync_reg[0] <= reset_sync_int;
+                for (int i = 1; i < NUM_OUTPUT_REGISTERS; i++) begin
+                    reset_sync_reg[i] <= reset_sync_reg[i - 1];
+                end
+            end
+
+            assign reset_sync = reset_sync_reg[NUM_OUTPUT_REGISTERS - 1];
         end
     end
     endgenerate
