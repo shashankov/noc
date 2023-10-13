@@ -708,7 +708,7 @@ module axis_serializer #(
 
     always @(posedge clk) begin
         if (!rst_n) begin
-            ser_count = '0;
+            ser_count <= '0;
         end else begin
             ser_count <= ser_count + (axis_out_tvalid & axis_out_tready);
             if (ser_count == (SERIALIZATION_FACTOR - 1) && (axis_out_tvalid & axis_out_tready)) begin
