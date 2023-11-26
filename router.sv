@@ -131,7 +131,7 @@ module router #(
     // grant_input is a combined signal which indicates whether the input
     // has been granted any request. Since an input only requests one output
     // at any cycle, this signal can used to generate the pipeline enable
-    always @(*) begin
+    always_comb begin
         grant_input = '0;
         for (int i = 0; i < NUM_INPUTS; i++) begin
             for (int j = 0; j < NUM_OUTPUTS; j++) begin
@@ -141,7 +141,7 @@ module router #(
     end
 
     // Credit counter
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             if (rst_n == 1'b0) begin
                 credit_counter[i] <= FLIT_BUFFER_DEPTH;
@@ -152,7 +152,7 @@ module router #(
     end
 
     // Registered logic to read from the routing table
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             if (~flit_reg0_valid[i] | pipeline_enable[i])
                 route_table_out[i] <= route_table[route_table_select[i]];
@@ -160,7 +160,7 @@ module router #(
     end
 
     // First stage flit pipeline (parallel to routing table lookup)
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             if (~flit_reg0_valid[i] | pipeline_enable[i]) begin
                 flit_reg0_flit[i] <= flit_buffer_out[i];
@@ -171,7 +171,7 @@ module router #(
     end
 
     // Covert routing table output to one-hot
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             request[i] = '0;
         end
@@ -190,7 +190,7 @@ module router #(
      */
     // Grant mask is used to disable selfloop at a second point
     // Just masking the request increased resource utilization
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             grant_mask[i] = grant[i];
         end
@@ -202,7 +202,7 @@ module router #(
     end
 
     // Update state of packet receive and transit
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             if (rst_n == 1'b0) begin
                 receiving_packet[i] <= 1'b0;
@@ -218,7 +218,7 @@ module router #(
     end
 
     // Hold is active when the data is valid until the tail flit
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             hold[i] = '0;
             for (int j = 0; j < NUM_INPUTS; j++) begin
@@ -232,7 +232,7 @@ module router #(
     end
 
     // Flit buffer data and pipeline data valid signal
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             if (rst_n == 1'b0) begin
                 flit_buffer_valid[i] <= '0;
@@ -254,7 +254,7 @@ module router #(
     end
 
     // Output data pipeline
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             if (~data_out_reg_valid[i] | send_out[i]) begin
                 data_out_reg_flit[i] <= data_out_flit[i];
@@ -265,7 +265,7 @@ module router #(
     end
 
     // Data out pipeline valid signal
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             if (rst_n == 1'b0) begin
                 data_out_reg_valid[i] <= '0;
@@ -280,7 +280,7 @@ module router #(
     end
 
     // send_out signal
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             if (PIPELINE_OUTPUT == 1)
                 send_out[i] = data_out_reg_valid[i] & (credit_counter[i] > 1'b0);
@@ -356,7 +356,7 @@ module router #(
     endgenerate
 
     // Crossbar
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             flit_reg0[i] = {flit_reg0_flit[i], flit_reg0_dest[i], flit_reg0_is_tail[i]};
         end
@@ -409,14 +409,14 @@ module arbiter_matrix #(
     logic deactivate [NUM_INPUTS];
 
     // Generate instantaneous grant logic combinationally
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             grant_int[i] = request[i] & ~deactivate[i];
         end
     end
 
     // Latch grant and hold logic
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         // This should not depend on request since request is only dependent on
         // data being valid but hold must act to hold the request for when it is
         // low. Hold is later gated by whether grant is high or not which
@@ -431,7 +431,7 @@ module arbiter_matrix #(
     end
 
     // Generate anyhold signal
-    always @(*) begin
+    always_comb begin
         anyhold = 1'b0;
         for (int i = 0; i < NUM_INPUTS; i++) begin
             anyhold = anyhold | (hold_delay[i] & grant_prev[i]);
@@ -439,14 +439,14 @@ module arbiter_matrix #(
     end
 
     // Generate grant logic
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             grant[i] = (hold_delay[i] & grant_prev[i]) ? grant_prev[i] : (grant_int[i] & ~anyhold);
         end
     end
 
     // Generate deactivate signals
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             deactivate[i] = 1'b0;
             for (int j = 0; j < NUM_INPUTS; j++) begin
@@ -456,7 +456,7 @@ module arbiter_matrix #(
     end
 
     // Matrix update logic
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (rst_n == 1'b0) begin
             for (int i = 0; i < NUM_INPUTS; i++) begin
                 for (int j = i + 1; j < NUM_INPUTS; j++) begin
@@ -486,7 +486,7 @@ module onehot_to_binary #(
     input   wire    [WIDTH - 1 : 0]         onehot,
     output  logic   [$clog2(WIDTH) - 1 : 0] binary
 );
-    always @(*) begin
+    always_comb begin
         binary = '0;
         for (int i = 0; i < WIDTH; i++) begin
             binary |= onehot[i] ? i : '0;
@@ -526,7 +526,7 @@ module crossbar_onehot #(
                 assign valid_out[i] = (select[i] == '0) ? 1'b0 : valid_in[select_binary[i]];
             end
         end else if (MODE == "ONEHOT") begin
-            always @(*) begin
+            always_comb begin
                 for (int i = 0; i < NUM_OUTPUTS; i++) begin
                     data_out[i] = '0;
                     valid_out[i] = '0;
@@ -553,7 +553,7 @@ module crossbar_onehot #(
             for (i = 0; i < NUM_OUTPUTS; i++) begin: for_outputs
                 assign select_expanded[i] = {'0, select[i]};
 
-                always @(*) begin
+                always_comb begin
                     data_out[i] = 'x;
                     valid_out[i] = 'x;
                     case (select_expanded[i])

@@ -296,12 +296,12 @@ module axis_clkcross_shim_in #(
     assign data_buffer_rdreq = (credit_count > 0) & ~data_buffer_rdempty;
 
     // Send is one cycle delayed version of rdreq
-    always @(posedge clk_noc) begin
+    always_ff @(posedge clk_noc) begin
         send_out <= data_buffer_rdreq;
     end
 
     // Credit counter
-    always @(posedge clk_noc) begin
+    always_ff @(posedge clk_noc) begin
         if (rst_n_noc_sync == 1'b0) begin
             credit_count <= FLIT_BUFFER_DEPTH;
         end else begin
@@ -310,7 +310,7 @@ module axis_clkcross_shim_in #(
     end
 
     // Serialization counter counts down to end of input word
-    always @(posedge clk_noc) begin
+    always_ff @(posedge clk_noc) begin
         if (rst_n_noc_sync == 1'b0) begin
             ser_count <= SERIALIZATION_FACTOR - 1;
         end else begin
@@ -431,7 +431,7 @@ module axis_clkcross_shim_out #(
     logic [$clog2(SERIALIZATION_FACTOR) - 1 : 0] ser_count;
 
     // Credit counter
-    always @(posedge clk_noc) begin
+    always_ff @(posedge clk_noc) begin
         if (rst_n_noc_sync == 1'b0) begin
             credit_count <= FLIT_BUFFER_DEPTH;
         end else begin
@@ -440,7 +440,7 @@ module axis_clkcross_shim_out #(
     end
 
     // Delay used credits since wrused has a two cycle latency
-    always @(posedge clk_noc) begin
+    always_ff @(posedge clk_noc) begin
         credit_count_reg <= credit_count;
     end
 
@@ -452,7 +452,7 @@ module axis_clkcross_shim_out #(
         (credit_count_reg < ((BUFFER_DEPTH * SERIALIZATION_FACTOR) - data_buffer_wrusedw - 1'b1));
 
     // Serialization counter
-    always @(posedge clk_noc) begin
+    always_ff @(posedge clk_noc) begin
         if (rst_n_noc_sync == 1'b0) begin
             ser_count <= SERIALIZATION_FACTOR - 1;
         end else begin
@@ -563,7 +563,7 @@ module axis_shim_in #(
     logic [$clog2(FLIT_BUFFER_DEPTH) : 0] credit_count;
     logic credit_used;
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (!rst_n) begin
             credit_count <= FLIT_BUFFER_DEPTH;
         end else begin
@@ -586,7 +586,7 @@ module axis_shim_in #(
             assign credit_used = buffer_rdreq;
             assign buffer_rdreq = (credit_count > 0) & !buffer_empty;
 
-            always @(posedge clk) begin
+            always_ff @(posedge clk) begin
                 send_out <= buffer_rdreq;
             end
 
@@ -637,7 +637,7 @@ module axis_shim_out #(
     logic [$clog2(BUFFER_DEPTH) : 0] credit_count;
     logic [$clog2(BUFFER_DEPTH) : 0] buffer_usedw;
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (!rst_n) begin
             credit_count <= FLIT_BUFFER_DEPTH;
             buffer_usedw <= '0;
@@ -702,11 +702,11 @@ module axis_serializer #(
     assign axis_out_tlast = tlast_buffer & (ser_count == (SERIALIZATION_FACTOR - 1));
     assign axis_in_tready = !axis_out_tvalid || ((axis_out_tready && axis_out_tvalid) && (ser_count == (SERIALIZATION_FACTOR - 1)));
 
-    always @(*) begin
+    always_comb begin
         axis_out_tdata = tdata_buffer[TDATA_OUT_WIDTH * (ser_count + 1'b1) - 1 -: TDATA_OUT_WIDTH];
     end
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (!rst_n) begin
             ser_count <= '0;
         end else begin
@@ -717,7 +717,7 @@ module axis_serializer #(
         end
     end
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (axis_in_tready & axis_in_tvalid) begin
             tdata_buffer <= axis_in_tdata;
             tdest_buffer <= axis_in_tdest;
@@ -725,7 +725,7 @@ module axis_serializer #(
         end
     end
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (!rst_n) begin
             axis_out_tvalid <= 1'b0;
         end else begin
@@ -772,7 +772,7 @@ module axis_deserializer #(
 
     assign axis_in_tready = !axis_out_tvalid || ((axis_out_tready && axis_out_tvalid) && (ser_count == (SERIALIZATION_FACTOR - 1)));
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (!rst_n) begin
             ser_count <= '0;
         end else begin
@@ -783,7 +783,7 @@ module axis_deserializer #(
         end
     end
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (!rst_n) begin
             axis_out_tvalid <= 1'b0;
         end else begin
@@ -794,7 +794,7 @@ module axis_deserializer #(
         end
     end
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (axis_in_tready & axis_in_tvalid) begin
             tdata_buffer[TDATA_IN_WIDTH * (ser_count + 1'b1) - 1 -: TDATA_IN_WIDTH] <= axis_in_tdata;
             if (ser_count == (SERIALIZATION_FACTOR - 1)) begin

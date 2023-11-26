@@ -36,7 +36,7 @@ module noc_pipeline_link #(
             logic                           send    [NUM_PIPELINE];
             logic                           credit  [NUM_PIPELINE];
 
-            always @(posedge clk) begin
+            always_ff @(posedge clk) begin
                 data[0]     <= data_in;
                 dest[0]     <= dest_in;
                 is_tail[0]  <= is_tail_in;
@@ -52,7 +52,7 @@ module noc_pipeline_link #(
                 end
             end
 
-            always @(*) begin
+            always_comb begin
                 data_out    = data[NUM_PIPELINE - 1];
                 dest_out    = dest[NUM_PIPELINE - 1];
                 is_tail_out = is_tail[NUM_PIPELINE - 1];

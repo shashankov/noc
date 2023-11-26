@@ -9,7 +9,7 @@ module reset_synchronizer #(
 
     logic reset_async_reg, reset_async_reg2, reset_sync_int;
 
-    always @(posedge sync_clk) begin
+    always_ff @(posedge sync_clk) begin
         reset_async_reg <= reset_async;
         reset_async_reg2 <= reset_async_reg;
     end
@@ -19,13 +19,13 @@ module reset_synchronizer #(
             genvar i;
             logic [NUM_EXTEND_CYCLES - 1 : 0] reset_extend;
 
-            always @(posedge sync_clk) begin
+            always_ff @(posedge sync_clk) begin
                 if (NUM_EXTEND_CYCLES > 1)
                     reset_extend[NUM_EXTEND_CYCLES - 1 : 1] <= reset_extend[NUM_EXTEND_CYCLES - 2 : 0];
                 reset_extend[0] <= reset_async_reg2;
             end
 
-            always @(*) begin
+            always_comb begin
                 reset_sync_int = reset_async_reg2;
                 for (int i = 0; i < NUM_EXTEND_CYCLES; i++) begin
                     reset_sync_int = reset_sync_int | reset_extend[i];
@@ -41,7 +41,7 @@ module reset_synchronizer #(
         if (NUM_OUTPUT_REGISTERS > 0) begin
             logic reset_sync_reg[NUM_OUTPUT_REGISTERS];
 
-            always @(posedge sync_clk) begin
+            always_ff @(posedge sync_clk) begin
                 reset_sync_reg[0] <= reset_sync_int;
                 for (int i = 1; i < NUM_OUTPUT_REGISTERS; i++) begin
                     reset_sync_reg[i] <= reset_sync_reg[i - 1];

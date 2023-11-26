@@ -14,7 +14,7 @@ module router_tb ();
         forever #5 clk = ~clk;
     end
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (rst_n == 1'b0)
             data_in[0] <= 32'h1;
         else if (recv[0] == 1'b1)

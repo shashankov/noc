@@ -11,7 +11,7 @@ module shift_reg #(
 
 logic [WIDTH - 1 : 0] q_int[0 : DELAY - 1];
 
-always @(posedge clk or negedge rst_n) begin
+always_ff @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         for (int i = 0; i < DELAY; i++) begin
             q_int[i] <= '0;

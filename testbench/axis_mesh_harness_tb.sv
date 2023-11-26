@@ -44,7 +44,7 @@ module axis_mesh_harness_tb();
     logic [COUNT_WIDTH - 1 : 0] recv_packets    [NUM_ROWS][NUM_COLS][2**TID_WIDTH];
     logic                       error           [NUM_ROWS][NUM_COLS];
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (rst_n == 0) begin
             ticks <= 0;
         end else begin

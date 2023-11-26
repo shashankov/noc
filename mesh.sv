@@ -89,12 +89,20 @@ module mesh #(
     logic                            credit_router_in   [NUM_ROWS * NUM_COLS][5];
 
     // Assign router input and output ports
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_ROWS; i++) begin
             for (int j = 0; j < NUM_COLS; j++) begin
                 int ridx, idx;
                 ridx = i * NUM_COLS + j;
                 idx = 0;
+
+                // NoC IO Ports
+                   data_router_in [ridx][idx] =    data_in  [i][j];
+                   dest_router_in [ridx][idx] =    dest_in  [i][j];
+                is_tail_router_in [ridx][idx] = is_tail_in  [i][j];
+                   send_router_in [ridx][idx] =    send_in  [i][j];
+                 credit_router_in [ridx][idx] =  credit_in  [i][j];
+
                 // Read from the directional ports
                 // North Side Ports
                 if (i != 0) begin
@@ -139,10 +147,10 @@ module mesh #(
         end
     end
 
-    // This split in the alwasy block is necessary for Modelsim
+    // This split in the always block is necessary for Modelsim
     // to correctly assign the outputs without causing a delay
     // by triggering some signals only on the next clock edge
-    always @(*) begin
+    always_comb begin
         for (int i = 0; i < NUM_ROWS; i++) begin
             for (int j = 0; j < NUM_COLS; j++) begin
                 int ridx, idx;
@@ -150,12 +158,6 @@ module mesh #(
                 idx = 0;
 
                 // NoC IO Ports
-                   data_router_in [ridx][idx] =    data_in  [i][j];
-                   dest_router_in [ridx][idx] =    dest_in  [i][j];
-                is_tail_router_in [ridx][idx] = is_tail_in  [i][j];
-                   send_router_in [ridx][idx] =    send_in  [i][j];
-                 credit_router_in [ridx][idx] =  credit_in  [i][j];
-
                    data_out [i][j] =    data_router_out [ridx][idx];
                    dest_out [i][j] =    dest_router_out [ridx][idx];
                 is_tail_out [i][j] = is_tail_router_out [ridx][idx];

@@ -43,7 +43,7 @@ module axis_tg #(
         RUNNING
     } state, next_state;
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (rst_n == 1'b0 || state == IDLE) begin
             total_sent_packets <= '0;
             for (int i = 0; i < 2**TDEST_WIDTH; i++) begin
@@ -57,7 +57,7 @@ module axis_tg #(
         end
     end
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (rst_n == 1'b0) begin
             state <= IDLE;
         end else begin
@@ -65,7 +65,7 @@ module axis_tg #(
         end
     end
 
-    always @(*) begin
+    always_comb begin
         next_state = state;
         axis_out_tvalid = 1'b0;
         done = 1'b0;
@@ -115,7 +115,7 @@ module lfsr_64 #(
     output  logic [63 : 0]  q
 );
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (rst_n == 1'b0) begin
             q <= SEED;
         end else begin
@@ -137,7 +137,7 @@ module lfsr_16 #(
     output  logic [15 : 0]  q
 );
 
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         if (rst_n == 1'b0) begin
             q <= SEED;
         end else begin
