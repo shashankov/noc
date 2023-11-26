@@ -58,17 +58,26 @@ module router #(
     logic [NUM_INPUTS - 1 : 0] grant_mask  [NUM_OUTPUTS];
     logic [NUM_INPUTS - 1 : 0] grant_input;
 
-    // Input pipeline signals
+    // Input pipeline signals (Unpacked for easier debugging)
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  flit_reg0[NUM_INPUTS];
+    logic [FLIT_WIDTH - 1: 0]                   flit_reg0_flit[NUM_INPUTS];
+    logic [DEST_WIDTH - 1: 0]                   flit_reg0_dest[NUM_INPUTS];
+    logic                                       flit_reg0_is_tail[NUM_INPUTS];
     logic                                       flit_reg0_valid[NUM_INPUTS];
     logic                                       pipeline_enable[NUM_INPUTS];
 
-    // Crossbar signals
+    // Crossbar signals (Unpacked for easier debugging)
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  data_out_packed[NUM_OUTPUTS];
+    logic [FLIT_WIDTH - 1: 0]                   data_out_flit[NUM_OUTPUTS];
+    logic [DEST_WIDTH - 1: 0]                   data_out_dest[NUM_OUTPUTS];
+    logic                                       data_out_is_tail[NUM_OUTPUTS];
     logic                                       flit_out_valid[NUM_OUTPUTS];
 
-    // Output pipeline signals
+    // Output pipeline signals (Unpacked for easier debugging)
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  data_out_reg[NUM_OUTPUTS];
+    logic [FLIT_WIDTH - 1: 0]                   data_out_reg_flit[NUM_OUTPUTS];
+    logic [DEST_WIDTH - 1: 0]                   data_out_reg_dest[NUM_OUTPUTS];
+    logic                                       data_out_reg_is_tail[NUM_OUTPUTS];
     logic                                       data_out_reg_valid[NUM_OUTPUTS];
 
     // Output credit counter
@@ -112,7 +121,9 @@ module router #(
             assign route_table_select[i] = dest_buffer_out[i][$clog2(NOC_NUM_ENDPOINTS) - 1 : 0];
 
             // Unpack the crossbar output
-            assign {data_out[i], dest_out[i], is_tail_out[i]} = (PIPELINE_OUTPUT == 0) ? data_out_packed[i] : data_out_reg[i];
+            assign {data_out[i], dest_out[i], is_tail_out[i]} = (PIPELINE_OUTPUT == 0) ?
+                {data_out_flit[i], data_out_dest[i], data_out_is_tail[i]} :
+                {data_out_reg_flit[i], data_out_reg_dest[i], data_out_reg_is_tail[i]};
         end
     end
     endgenerate
@@ -151,8 +162,11 @@ module router #(
     // First stage flit pipeline (parallel to routing table lookup)
     always @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            if (~flit_reg0_valid[i] | pipeline_enable[i])
-                flit_reg0[i] <= {flit_buffer_out[i], dest_buffer_out[i], flit_buffer_is_tail_out[i]};
+            if (~flit_reg0_valid[i] | pipeline_enable[i]) begin
+                flit_reg0_flit[i] <= flit_buffer_out[i];
+                flit_reg0_dest[i] <= dest_buffer_out[i];
+                flit_reg0_is_tail[i] <= flit_buffer_is_tail_out[i];
+            end
         end
     end
 
@@ -208,7 +222,11 @@ module router #(
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             hold[i] = '0;
             for (int j = 0; j < NUM_INPUTS; j++) begin
-                hold[i][j] = ~(flit_reg0[j][0] & send_out[i]);
+                // If pipeline output is enabled then the data moves forward if
+                // the piepline moves forward, which happens when the output
+                // is active or the output pipeline register is empty
+                hold[i][j] = ~(flit_reg0_is_tail[j] && (send_out[i]
+                    || (~data_out_reg_valid[i] && (PIPELINE_OUTPUT == 1))));
             end
         end
     end
@@ -238,8 +256,11 @@ module router #(
     // Output data pipeline
     always @(posedge clk) begin
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
-            if (~data_out_reg_valid[i] | send_out[i])
-                data_out_reg[i] <= data_out_packed[i];
+            if (~data_out_reg_valid[i] | send_out[i]) begin
+                data_out_reg_flit[i] <= data_out_flit[i];
+                data_out_reg_dest[i] <= data_out_dest[i];
+                data_out_reg_is_tail[i] <= data_out_is_tail[i];
+            end
         end
     end
 
@@ -335,6 +356,16 @@ module router #(
     endgenerate
 
     // Crossbar
+    always @(*) begin
+        for (int i = 0; i < NUM_INPUTS; i++) begin
+            flit_reg0[i] = {flit_reg0_flit[i], flit_reg0_dest[i], flit_reg0_is_tail[i]};
+        end
+
+        for (int i = 0; i < NUM_OUTPUTS; i++) begin
+            {data_out_flit[i], data_out_dest[i], data_out_is_tail[i]} = data_out_packed[i];
+        end
+    end
+
     crossbar_onehot #(
         .DATA_WIDTH         (FLIT_WIDTH + DEST_WIDTH + 1),
         .NUM_INPUTS         (NUM_INPUTS),
@@ -375,7 +406,6 @@ module arbiter_matrix #(
     logic anyhold;
     logic [NUM_INPUTS - 1 : 0] grant_int, grant_prev;
 
-    logic enable;
     logic deactivate [NUM_INPUTS];
 
     // Generate instantaneous grant logic combinationally
@@ -387,7 +417,12 @@ module arbiter_matrix #(
 
     // Latch grant and hold logic
     always @(posedge clk) begin
-        hold_delay <= hold & request;
+        // This should not depend on request since request is only dependent on
+        // data being valid but hold must act to hold the request for when it is
+        // low. Hold is later gated by whether grant is high or not which
+        // accounts for the case when the request is low to start and the
+        // request has not been granted yet so as to not hold a no-grant
+        hold_delay <= hold;
         if (rst_n == 1'b0) begin
             grant_prev <= '0;
         end else begin
@@ -407,14 +442,6 @@ module arbiter_matrix #(
     always @(*) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             grant[i] = (hold_delay[i] & grant_prev[i]) ? grant_prev[i] : (grant_int[i] & ~anyhold);
-        end
-    end
-
-    // Update priority matrix when hold for the granted signal is low
-    always @(*) begin
-        enable = 1'b1;
-        for (int i = 0; i < NUM_INPUTS; i++) begin
-            enable = enable & ~(grant[i] & hold[i]);
         end
     end
 
@@ -441,12 +468,11 @@ module arbiter_matrix #(
                 matrix[i][i] <= 1'b0;
             end
         end else begin
-            if (enable) begin
-                for (int i = 1; i < NUM_INPUTS; i++) begin
-                    for (int j = 0; j < i; j++) begin
-                        matrix[i][j] <= (matrix[i][j] & ~grant[i]) | grant[j];
-                        matrix[j][i] <= (matrix[j][i] & ~grant[j]) | grant[i];
-                    end
+            // Matrix can always be updated because grants are held with holds
+            for (int i = 1; i < NUM_INPUTS; i++) begin
+                for (int j = 0; j < i; j++) begin
+                    matrix[i][j] <= (matrix[i][j] & ~grant[i]) | grant[j];
+                    matrix[j][i] <= (matrix[j][i] & ~grant[j]) | grant[i];
                 end
             end
         end
