@@ -1,3 +1,13 @@
+/**
+ * @file router.sv
+ *
+ * @brief Main NoC router
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
 `timescale 1ns/1ps
 
 module router #(

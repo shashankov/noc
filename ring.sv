@@ -1,4 +1,14 @@
-module ring #(
+/**
+ * @file ring.sv
+ *
+ * @brief Ring NoC with native interface
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
+ module ring #(
     parameter NUM_ROUTERS = 4,
     parameter DEST_WIDTH = 4,
     parameter FLIT_WIDTH = 256,

@@ -1,3 +1,13 @@
+/**
+ * @file noc_pipeline_link.sv
+ *
+ * @brief Pipeline registers for links
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
 // Pipeline links module which does not use reset signal
 // to allow them to be mapped to the hyper registers
 

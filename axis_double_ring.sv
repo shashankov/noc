@@ -1,3 +1,13 @@
+/**
+ * @file axis_double_ring.sv
+ *
+ * @brief AXI-Stream Double-Ring NoC
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
 module axis_double_ring #(
     parameter RESET_SYNC_EXTEND_CYCLES = 2,
     parameter RESET_NUM_OUTPUT_REGISTERS = 1,

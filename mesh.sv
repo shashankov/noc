@@ -1,4 +1,14 @@
-module mesh #(
+/**
+ * @file mesh.sv
+ *
+ * @brief Mesh NoC with native interface
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
+ module mesh #(
     parameter NUM_ROWS = 4,
     parameter NUM_COLS = 4,
     parameter DEST_WIDTH = 4,           // clog2(NUM_ROWS * NUM_COLS)

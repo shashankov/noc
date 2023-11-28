@@ -1,5 +1,7 @@
 # Simple Intel FPGA Optimized NoC
 
+Author: Shashank Obla (sobla@andrew.cmu.edu)
+
 ## NoC
 ### Generic NoC Parameters
 | Parameter | Description |

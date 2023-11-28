@@ -1,3 +1,13 @@
+/**
+ * @file axis_serdes_shim.sv
+ *
+ * @brief AXI-Stream and serdes shims for the NoC
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
 module axis_serializer_shim_in #(
     parameter TDEST_WIDTH = 3,
     parameter TDATA_WIDTH = 512,

@@ -1,3 +1,13 @@
+/**
+ * @file axis_mesh.sv
+ *
+ * @brief AXI-Stream Mesh NoC
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
 module axis_mesh #(
     parameter RESET_SYNC_EXTEND_CYCLES = 2,
     parameter RESET_NUM_OUTPUT_REGISTERS = 1,

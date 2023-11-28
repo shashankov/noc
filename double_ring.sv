@@ -1,3 +1,13 @@
+/**
+ * @file double_ring.sv
+ *
+ * @brief Double-Ring NoC with native interface
+ *
+ * @author Shashank Obla
+ * Contact: sobla@andrew.cmu.edu
+ *
+ */
+
 module double_ring #(
     parameter NUM_ROUTERS = 4,
     parameter DEST_WIDTH = 4,
