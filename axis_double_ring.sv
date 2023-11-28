@@ -1,5 +1,6 @@
 module axis_double_ring #(
     parameter RESET_SYNC_EXTEND_CYCLES = 2,
+    parameter RESET_NUM_OUTPUT_REGISTERS = 1,
 
     parameter NUM_ROUTERS = 4,
 
@@ -65,7 +66,8 @@ module axis_double_ring #(
 
     // Instantiations
     reset_synchronizer #(
-        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES)
+        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES),
+        .NUM_OUTPUT_REGISTERS(RESET_NUM_OUTPUT_REGISTERS)
     ) usr_sync (
         .reset_async    (~rst_n),
         .sync_clk       (clk_usr),
@@ -73,7 +75,8 @@ module axis_double_ring #(
     );
 
     reset_synchronizer #(
-        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES)
+        .NUM_EXTEND_CYCLES(RESET_SYNC_EXTEND_CYCLES),
+        .NUM_OUTPUT_REGISTERS(RESET_NUM_OUTPUT_REGISTERS)
     ) noc_sync (
         .reset_async    (~rst_n),
         .sync_clk       (clk_noc),

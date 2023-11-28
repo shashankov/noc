@@ -32,6 +32,7 @@ Describes a Mesh NoC using the [router interface](#router-interface) for IO pair
 | --------: | :---------- |
 | NUM_ROWS | Number of rows in the mesh |
 | NUM_COLS | Number of columns in the mesh |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
 | ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
 
 #### (Double-)Ring NoC ((double_)ring.sv)
@@ -117,6 +118,7 @@ NoC Topology specific parameters are same as in the [NoC section](#noc) and not 
 | Parameter | Description |
 | --------: | :---------- |
 | RESET_SYNC_EXTEND_CYCLES  | Specifies the number of cycles to extend the synchronized reset for (may be beneficial to debounce or depending on how the reset is generated) |
+| RESET_NUM_OUTPUT_REGISTERS| Specifies the number of output registers to help timing (NoC is not immediately ready after reset release)
 | TID_WIDTH                 | Width of AXI-Stream tid signal |
 | TDEST_WIDTH               | Width of AXI-Stream tdest signal |
 | TDATA_WIDTH               | Width of AXI-Stream tdata signal |
@@ -137,8 +139,8 @@ NoC Topology specific parameters are same as in the [NoC section](#noc) and not 
 
 Contain modules `axis_serializer_shim_in` and `axis_deserializer_shim_out` which form the input and output shims respectively. Parameters are forwarded and can be seen in the top-level [AXI-S NoC parameters](#generic-parameters)
 
-## Miscellaneous
+## Simulation
 
 - `test_harness`: Contains traffic generator and checker for the NoC with AXI-Stream wrapper.
 - `testbench`: Contains testbench files for various components in the repository.
-- `sim`: Containes files and tcl scripts required to perform a Modelsim simulation of the testbenches.
+- `sim`: Containes files and tcl scripts required to perform a Modelsim simulation of the testbenches. `dev_com` needs to be run once to build the Quartus simulation libraries (looks for 23.2 by default). Run as `vsim -do [-c] <tcl script>`.
