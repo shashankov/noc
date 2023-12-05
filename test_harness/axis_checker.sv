@@ -30,7 +30,16 @@ module axis_checker #(
 
     assign sent_tick = axis_in_tdata[TDATA_WIDTH - 1 : TDATA_WIDTH / 2];
     assign sent_count = axis_in_tdata[COUNT_WIDTH - 1 : 0];
-    assign axis_in_tready = 1'b1;
+
+    // Vary backpressure by changing bounds on random number check
+    initial begin
+        axis_in_tready = $urandom(TDEST);
+        forever begin
+            @(negedge clk);
+            axis_in_tready = ($urandom_range(100) < 100);
+        end
+    end
+    // assign axis_in_tready = 1'b1;
 
     always_ff @(posedge clk) begin
         if (rst_n == 1'b0) begin
@@ -40,7 +49,7 @@ module axis_checker #(
             total_recv_packets <= '0;
             error <= 1'b0;
         end else begin
-            if (axis_in_tvalid) begin
+            if (axis_in_tvalid && axis_in_tready) begin
                 if (total_recv_packets == '0) begin
                     start_tick <= ticks;
                 end

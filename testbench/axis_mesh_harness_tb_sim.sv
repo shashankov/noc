@@ -7,7 +7,7 @@ module axis_mesh_harness_tb_sim();
     localparam TDEST_WIDTH = 2;
     localparam TID_WIDTH = 2;
     localparam COUNT_WIDTH = 32;
-    localparam PACKET_COUNT = 1 << 18;
+    localparam PACKET_COUNT = 1 << 14;
 
     localparam SERIALIZATION_FACTOR = 1;
     localparam CLKCROSS_FACTOR = 2;
@@ -83,7 +83,9 @@ module axis_mesh_harness_tb_sim();
 
     logic all_done;
     logic [15 : 0] load;
-    real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.525, 0.55, 0.56, 0.57, 0.575, 0.58, 0.585, 0.59, 0.6};
+    // real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.525, 0.55, 0.56, 0.57, 0.575, 0.58, 0.585, 0.59, 0.6};
+    real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.66, 0.67, 0.675, 0.68, 0.685, 0.69, 0.7};
+    // real sweep_load[] = {0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01};
 
     initial begin
         rst_n = 1'b0;
@@ -217,7 +219,7 @@ module axis_mesh_harness_tb_sim();
     axis_mesh #(
         .NUM_ROWS                   (NUM_ROWS),
         .NUM_COLS                   (NUM_COLS),
-        .PIPELINE_LINKS             (0),
+        .PIPELINE_LINKS             (1),
 
         .TDEST_WIDTH                (TDEST_WIDTH),
         .TDATA_WIDTH                (DATA_WIDTH),
