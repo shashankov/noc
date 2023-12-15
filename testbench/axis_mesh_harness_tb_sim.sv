@@ -7,7 +7,7 @@ module axis_mesh_harness_tb_sim();
     localparam TDEST_WIDTH = 2;
     localparam TID_WIDTH = 2;
     localparam COUNT_WIDTH = 32;
-    localparam PACKET_COUNT = 1 << 14;
+    localparam PACKET_COUNT = 1 << 16;
 
     localparam SERIALIZATION_FACTOR = 1;
     localparam CLKCROSS_FACTOR = 2;
@@ -157,7 +157,7 @@ module axis_mesh_harness_tb_sim();
         for (i = 0; i < NUM_ROWS; i = i + 1) begin: for_rows
             for (j = 0; j < NUM_COLS; j = j + 1) begin: for_cols
             axis_tg_sim #(
-                .SEED           (i * NUM_COLS + j + 1),
+                .SEED           ((i * NUM_COLS + j) * 5 + 2),
 
                 .COUNT_WIDTH    (COUNT_WIDTH),
                 .TID            (i * NUM_COLS + j),
@@ -227,7 +227,7 @@ module axis_mesh_harness_tb_sim();
         .CLKCROSS_FACTOR            (CLKCROSS_FACTOR),
         .SINGLE_CLOCK               (SINGLE_CLOCK),
         .SERDES_IN_BUFFER_DEPTH     (4),
-        .SERDES_OUT_BUFFER_DEPTH    (4),
+        .SERDES_OUT_BUFFER_DEPTH    (32),
         .SERDES_EXTRA_SYNC_STAGES   (0),
 
         .FLIT_BUFFER_DEPTH          (8),

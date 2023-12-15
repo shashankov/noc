@@ -29,7 +29,7 @@ source $QSYS_SIMDIR/mentor/msim_setup.tcl
 # the top level. (These are all the files required for simulation other
 # than the files compiled by the Quartus-generated IP simulation script)
 #
-vlog $QSYS_SIMDIR/../testbench/axis_mesh_harness_tb_sim.sv $QSYS_SIMDIR/../*sv $QSYS_SIMDIR/../test_harness/*sv
+vlog +acc $QSYS_SIMDIR/../testbench/axis_mesh_harness_tb_sim.sv $QSYS_SIMDIR/../*sv $QSYS_SIMDIR/../test_harness/*sv
 #
 # Set the top-level simulation or testbench module/entity name, which is
 # used by the elab command to elaborate the top level.
@@ -40,29 +40,29 @@ set TOP_LEVEL_NAME axis_mesh_harness_tb_sim
 # set USER_DEFINED_ELAB_OPTIONS <elaboration options>
 #
 # Call command to elaborate your design and testbench.
-elab
+elab_debug
 #
-# add wave -position insertpoint  \
-# sim:/axis_mesh_harness_tb_sim/ticks \
-# sim:/axis_mesh_harness_tb_sim/axis_in_tvalid \
-# sim:/axis_mesh_harness_tb_sim/axis_in_tready \
-# sim:/axis_mesh_harness_tb_sim/axis_in_tdata \
-# sim:/axis_mesh_harness_tb_sim/axis_in_tlast \
-# sim:/axis_mesh_harness_tb_sim/axis_in_tdest \
-# sim:/axis_mesh_harness_tb_sim/axis_in_tid \
-# sim:/axis_mesh_harness_tb_sim/axis_out_tvalid \
-# sim:/axis_mesh_harness_tb_sim/axis_out_tready \
-# sim:/axis_mesh_harness_tb_sim/axis_out_tdata \
-# sim:/axis_mesh_harness_tb_sim/axis_out_tlast \
-# sim:/axis_mesh_harness_tb_sim/axis_out_tdest \
-# sim:/axis_mesh_harness_tb_sim/axis_out_tid \
-# sim:/axis_mesh_harness_tb_sim/done \
-# sim:/axis_mesh_harness_tb_sim/sent_packets \
-# sim:/axis_mesh_harness_tb_sim/recv_packets \
-# sim:/axis_mesh_harness_tb_sim/error
-# add wave -position insertpoint  \
-# sim:/axis_mesh_harness_tb_sim/clk \
-# sim:/axis_mesh_harness_tb_sim/rst_n
+add wave -position insertpoint  \
+sim:/axis_mesh_harness_tb_sim/ticks \
+sim:/axis_mesh_harness_tb_sim/axis_in_tvalid \
+sim:/axis_mesh_harness_tb_sim/axis_in_tready \
+sim:/axis_mesh_harness_tb_sim/axis_in_tdata \
+sim:/axis_mesh_harness_tb_sim/axis_in_tlast \
+sim:/axis_mesh_harness_tb_sim/axis_in_tdest \
+sim:/axis_mesh_harness_tb_sim/axis_in_tid \
+sim:/axis_mesh_harness_tb_sim/axis_out_tvalid \
+sim:/axis_mesh_harness_tb_sim/axis_out_tready \
+sim:/axis_mesh_harness_tb_sim/axis_out_tdata \
+sim:/axis_mesh_harness_tb_sim/axis_out_tlast \
+sim:/axis_mesh_harness_tb_sim/axis_out_tdest \
+sim:/axis_mesh_harness_tb_sim/axis_out_tid \
+sim:/axis_mesh_harness_tb_sim/done \
+sim:/axis_mesh_harness_tb_sim/sent_packets \
+sim:/axis_mesh_harness_tb_sim/recv_packets \
+sim:/axis_mesh_harness_tb_sim/error
+add wave -position insertpoint  \
+sim:/axis_mesh_harness_tb_sim/clk \
+sim:/axis_mesh_harness_tb_sim/rst_n
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_write} \

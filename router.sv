@@ -18,8 +18,9 @@ module router #(
     parameter DEST_WIDTH = 3,
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
+    parameter PIPELINE_ARBITER = 0,
     parameter PIPELINE_OUTPUT = 0,
-    parameter DISABLE_SELFLOOP = 0,     // Useful for IO pairs were data will not go back to the same router
+    parameter DISABLE_SELFLOOP = 0,     // Useful for IO pairs where data will not go back to the same router
     parameter FORCE_MLAB = 1
 ) (
     input   wire    clk,
@@ -44,6 +45,7 @@ module router #(
     // Routing Tables
     logic [$clog2(NUM_OUTPUTS) - 1 : 0]         route_table         [NOC_NUM_ENDPOINTS];  // Replicated for each input
     logic [$clog2(NUM_OUTPUTS) - 1 : 0]         route_table_out     [NUM_INPUTS];
+    logic [$clog2(NUM_OUTPUTS) - 1 : 0]         route_sa_reg        [NUM_INPUTS];
     logic [$clog2(NOC_NUM_ENDPOINTS) - 1 : 0]   route_table_select  [NUM_INPUTS];
 
     // Router state
@@ -66,14 +68,22 @@ module router #(
     logic [NUM_INPUTS - 1 : 0] hold        [NUM_OUTPUTS];
     logic [NUM_INPUTS - 1 : 0] grant       [NUM_OUTPUTS];
     logic [NUM_INPUTS - 1 : 0] grant_mask  [NUM_OUTPUTS];
+    logic [NUM_INPUTS - 1 : 0] grant_reg   [NUM_OUTPUTS];
     logic [NUM_INPUTS - 1 : 0] grant_input;
 
+    // Input pipeline signals
+    logic [FLIT_WIDTH - 1: 0]                   flit_rc_reg_flit[NUM_INPUTS];
+    logic [DEST_WIDTH - 1: 0]                   flit_rc_reg_dest[NUM_INPUTS];
+    logic                                       flit_rc_reg_is_tail[NUM_INPUTS];
+    logic                                       flit_rc_reg_valid[NUM_INPUTS];
+
     // Input pipeline signals (Unpacked for easier debugging)
-    logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  flit_reg0[NUM_INPUTS];
-    logic [FLIT_WIDTH - 1: 0]                   flit_reg0_flit[NUM_INPUTS];
-    logic [DEST_WIDTH - 1: 0]                   flit_reg0_dest[NUM_INPUTS];
-    logic                                       flit_reg0_is_tail[NUM_INPUTS];
-    logic                                       flit_reg0_valid[NUM_INPUTS];
+    logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  flit_sa_reg[NUM_INPUTS];
+    logic [FLIT_WIDTH - 1: 0]                   flit_sa_reg_flit[NUM_INPUTS];
+    logic [DEST_WIDTH - 1: 0]                   flit_sa_reg_dest[NUM_INPUTS];
+    logic                                       flit_sa_reg_is_tail[NUM_INPUTS];
+    logic                                       flit_sa_reg_valid[NUM_INPUTS];
+
     logic                                       pipeline_enable[NUM_INPUTS];
 
     // Crossbar signals (Unpacked for easier debugging)
@@ -115,11 +125,8 @@ module router #(
     generate begin: input_assign_gen
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
-            // Pipeline enable
-            assign pipeline_enable[i] = grant_input[i] & (send_out[route_table_out[i]] | (~data_out_reg_valid[route_table_out[i]] & (PIPELINE_OUTPUT == 1)));
-
             // Read flit buffer when the pipeline is free
-            assign flit_buffer_rdreq[i] = ~flit_buffer_empty[i] & (~flit_reg0_valid[i] | pipeline_enable[i]);
+            assign flit_buffer_rdreq[i] = ~flit_buffer_empty[i] & (~flit_rc_reg_valid[i] | pipeline_enable[i]);
 
             // Generate credits based on flit buffer reads
             assign credit_out[i] = flit_buffer_rdreq[i];
@@ -145,7 +152,7 @@ module router #(
         grant_input = '0;
         for (int i = 0; i < NUM_INPUTS; i++) begin
             for (int j = 0; j < NUM_OUTPUTS; j++) begin
-                grant_input[i] = grant_input[i] | grant[j][i];
+                grant_input[i] = grant_input[i] | grant_mask[j][i];
             end
         end
     end
@@ -164,7 +171,7 @@ module router #(
     // Registered logic to read from the routing table
     always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            if (~flit_reg0_valid[i] | pipeline_enable[i])
+            if (~flit_rc_reg_valid[i] | pipeline_enable[i])
                 route_table_out[i] <= route_table[route_table_select[i]];
         end
     end
@@ -172,10 +179,10 @@ module router #(
     // First stage flit pipeline (parallel to routing table lookup)
     always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            if (~flit_reg0_valid[i] | pipeline_enable[i]) begin
-                flit_reg0_flit[i] <= flit_buffer_out[i];
-                flit_reg0_dest[i] <= dest_buffer_out[i];
-                flit_reg0_is_tail[i] <= flit_buffer_is_tail_out[i];
+            if (~flit_rc_reg_valid[i] | pipeline_enable[i]) begin
+                flit_rc_reg_flit[i] <= flit_buffer_out[i];
+                flit_rc_reg_dest[i] <= dest_buffer_out[i];
+                flit_rc_reg_is_tail[i] <= flit_buffer_is_tail_out[i];
             end
         end
     end
@@ -186,7 +193,7 @@ module router #(
             request[i] = '0;
         end
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            request[route_table_out[i]][i] = flit_reg0_valid[i];
+            request[route_table_out[i]][i] = flit_rc_reg_valid[i];
             if (DISABLE_SELFLOOP == 1) begin
                 request[i][i] = 1'b0;
             end
@@ -235,7 +242,7 @@ module router #(
                 // If pipeline output is enabled then the data moves forward if
                 // the piepline moves forward, which happens when the output
                 // is active or the output pipeline register is empty
-                hold[i][j] = ~(flit_reg0_is_tail[j] && (send_out[i]
+                hold[i][j] = ~(flit_rc_reg_is_tail[j] && (send_out[i]
                     || (~data_out_reg_valid[i] && (PIPELINE_OUTPUT == 1))));
             end
         end
@@ -246,19 +253,17 @@ module router #(
         for (int i = 0; i < NUM_INPUTS; i++) begin
             if (rst_n == 1'b0) begin
                 flit_buffer_valid[i] <= '0;
-                flit_reg0_valid[i] <= '0;
+                flit_rc_reg_valid[i] <= '0;
             end else begin
-                if (pipeline_enable[i])
-                    flit_reg0_valid[i] <= 1'b0;
-
-                if (pipeline_enable[i] | ~flit_reg0_valid[i])
+                if (pipeline_enable[i] | ~flit_rc_reg_valid[i])
                     flit_buffer_valid[i] <= 1'b0;
-
                 if (flit_buffer_rdreq[i])
                     flit_buffer_valid[i] <= 1'b1;
 
+                if (pipeline_enable[i])
+                    flit_rc_reg_valid[i] <= 1'b0;
                 if (flit_buffer_valid[i])
-                    flit_reg0_valid[i] <= 1'b1;
+                    flit_rc_reg_valid[i] <= 1'b1;
             end
         end
     end
@@ -365,10 +370,63 @@ module router #(
     end
     endgenerate
 
+    // Arbiter Pipeline
+    logic [NUM_OUTPUTS - 1 : 0] grant_pipeline_in [NUM_INPUTS];
+    logic [NUM_OUTPUTS - 1 : 0] grant_pipeline_out[NUM_INPUTS];
+    logic [NUM_OUTPUTS - 1 : 0] output_stalled;
+
+    always_comb begin
+        for (int i = 0; i < NUM_INPUTS; i++) begin
+            for (int j = 0; j < NUM_OUTPUTS; j++) begin
+                grant_pipeline_in[i][j] = grant_mask[j][i];
+                grant_reg[j][i] = grant_pipeline_out[i][j];
+            end
+        end
+
+        for (int i = 0; i < NUM_OUTPUTS; i++) begin
+            output_stalled[i] = flit_out_valid[i] & ~(send_out[i] | (~data_out_reg_valid[i] & (PIPELINE_OUTPUT == 1)));
+        end
+    end
+
+    generate begin: arbiter_pipeline_gen
+        genvar i;
+        for (i = 0; i < NUM_INPUTS; i++) begin: for_iputs
+            sa_pipeline #(
+                .DATA_WIDTH (FLIT_WIDTH),
+                .DEST_WIDTH (DEST_WIDTH),
+                .NUM_OUTPUTS(NUM_OUTPUTS),
+                .ENABLE     (PIPELINE_ARBITER))
+            arbiter_pipeline_inst (
+                .clk        (clk),
+                .rst_n      (rst_n),
+
+                .grant      (grant_input[i]),
+
+                .data_in    (flit_rc_reg_flit[i]),
+                .dest_in    (flit_rc_reg_dest[i]),
+                .is_tail_in (flit_rc_reg_is_tail[i]),
+                .grant_in   (grant_pipeline_in[i]),
+                .route_in   (route_table_out[i]),
+                .valid_in   (flit_rc_reg_valid[i]),
+                .enable_out (pipeline_enable[i]),
+
+                .data_out   (flit_sa_reg_flit[i]),
+                .dest_out   (flit_sa_reg_dest[i]),
+                .is_tail_out(flit_sa_reg_is_tail[i]),
+                .grant_out  (grant_pipeline_out[i]),
+                .route_out  (route_sa_reg[i]),
+                .valid_out  (flit_sa_reg_valid[i]),
+                .output_stalled (output_stalled),
+                .enable_in  (send_out[route_sa_reg[i]] | (~data_out_reg_valid[route_sa_reg[i]] & (PIPELINE_OUTPUT == 1)))
+            );
+        end
+    end
+    endgenerate
+
     // Crossbar
     always_comb begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            flit_reg0[i] = {flit_reg0_flit[i], flit_reg0_dest[i], flit_reg0_is_tail[i]};
+            flit_sa_reg[i] = {flit_sa_reg_flit[i], flit_sa_reg_dest[i], flit_sa_reg_is_tail[i]};
         end
 
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
@@ -382,13 +440,13 @@ module router #(
         .NUM_OUTPUTS        (NUM_OUTPUTS),
         .DISABLE_SELFLOOP   (DISABLE_SELFLOOP))
     crossbar_inst (
-        .data_in     (flit_reg0),
-        .valid_in    (flit_reg0_valid),
+        .data_in     (flit_sa_reg),
+        .valid_in    (flit_sa_reg_valid),
 
         .data_out    (data_out_packed),
         .valid_out   (flit_out_valid),
 
-        .select      (grant_mask)
+        .select      (grant_reg)
     );
 
 endmodule: router
@@ -613,3 +671,71 @@ module crossbar_onehot #(
     endgenerate
 
 endmodule: crossbar_onehot
+
+module sa_pipeline #(
+    parameter DATA_WIDTH = 32,
+    parameter DEST_WIDTH = 4,
+    parameter NUM_OUTPUTS = 2,
+    parameter ENABLE = 1
+) (
+    input   wire    clk,
+    input   wire    rst_n,
+
+    input   wire                                    grant,
+
+    input   wire    [DATA_WIDTH - 1 : 0]            data_in,
+    input   wire    [DEST_WIDTH - 1 : 0]            dest_in,
+    input   wire                                    is_tail_in,
+    input   wire    [NUM_OUTPUTS - 1 : 0]           grant_in,
+    input   wire    [$clog2(NUM_OUTPUTS) - 1 : 0]   route_in,
+    input   wire                                    valid_in,
+
+    output  logic                                   enable_out,
+
+    output  logic   [DATA_WIDTH - 1 : 0]            data_out,
+    output  logic   [DEST_WIDTH - 1 : 0]            dest_out,
+    output  logic                                   is_tail_out,
+    output  logic   [NUM_OUTPUTS - 1 : 0]           grant_out,
+    output  logic   [$clog2(NUM_OUTPUTS) - 1 : 0]   route_out,
+    output  logic                                   valid_out,
+
+    input   wire    [NUM_OUTPUTS - 1 : 0]           output_stalled,
+    input   wire                                    enable_in
+);
+    logic [NUM_OUTPUTS - 1 : 0] grant_reg;
+
+    generate begin: enable_gen
+        if (ENABLE == 1) begin
+            always_ff @(posedge clk) begin
+                if (rst_n == 1'b0) begin
+                    valid_out <= '0;
+                end else begin
+                    if (enable_in) valid_out <= 1'b0;
+                    if (valid_in & grant & ~output_stalled[route_in]) valid_out <= 1'b1;
+                end
+
+                if (~valid_out | enable_in) begin
+                    data_out <= data_in;
+                    dest_out <= dest_in;
+                    is_tail_out <= is_tail_in;
+                    grant_reg <= grant_in;
+                    route_out <= route_in;
+                end
+            end
+            assign grant_out = valid_out ? grant_reg : '0;
+            assign enable_out = grant & (enable_in | ~valid_out) & ~output_stalled[route_in];
+        end else if (ENABLE == 0) begin
+            assign data_out = data_in;
+            assign dest_out = dest_in;
+            assign is_tail_out = is_tail_in;
+            assign grant_out = grant_in;
+            assign route_out = route_in;
+            assign valid_out = valid_in;
+
+            assign enable_out = enable_in & grant;
+        end else
+            $fatal(0, "Invalid ENABLE parameter");
+    end
+    endgenerate
+
+endmodule: sa_pipeline
