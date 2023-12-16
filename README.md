@@ -4,14 +4,18 @@ Author: Shashank Obla (sobla@andrew.cmu.edu)
 
 ## NoC
 ### Generic NoC Parameters
+These are a subset of the [Router Parameters](#router-parameters) but the mapping is provided below.
+
 | Parameter | Description |
 | --------: | :---------- |
-| DEST_WIDTH | Width of the destination input (can be larger than actual destination, only the lowest bits are used for destination decoding)
-| FLIT_WIDTH | Data width of the router |
-| FLIT_BUFFER_DEPTH | Input flit buffer depth |
-| ROUTER_PIPELINE_OUTPUT | Adds an extra pipeline stage at the output of routers |
-| ROUTER_DISABLE_SELFLOOP | Disables path from input i to output i in each router |
-| ROUTER_FORCE_MLAB | Forces the flit buffers in routers to use MLABs (LUTRAM) instead of M20Ks (BRAM) (Advanced) |
+| DEST_WIDTH | See DEST_WIDTH option in [Router Parameters](#router-parameters) |
+| FLIT_WIDTH | See FLIT_WIDTH option in [Router Parameters](#router-parameters) |
+| FLIT_BUFFER_DEPTH | See FLIT_BUFFER_DEPTH option in [Router Parameters](#router-parameters) |
+| ROUTER_PIPELINE_ROUTE_COMPUTE | See PIPELINE_ROUTE_COMPUTE option in [Router Parameters](#router-parameters) |
+| ROUTER_PIPELINE_ARBITER | See PIPELINE_ARBITER option in [Router Parameters](#router-parameters) |
+| ROUTER_PIPELINE_OUTPUT | See PIPELINE_OUTPUT option in [Router Parameters](#router-parameters) |
+| ROUTER_DISABLE_SELFLOOP | See DISABLE_SELFLOOP option in [Router Parameters](#router-parameters) |
+| ROUTER_FORCE_MLAB | See FORCE_MLAB option in [Router Parameters](#router-parameters) |
 
 ### Routing Table Generation
 
@@ -72,7 +76,7 @@ Describes a parametrizable router featuring input-independent output-based routi
 |send_out    |O|Push (Output must accept - credit-based flow control)|
 |credit_in   |I|Receive credits|
 
-#### Parameters
+#### Router Parameters
 
 | Parameter | Description |
 | --------: | :---------- |
@@ -83,6 +87,8 @@ Describes a parametrizable router featuring input-independent output-based routi
 | DEST_WIDTH | Width of the destination input (can be larger than actual destination, only the lowest bits are used for destination decoding)
 | FLIT_WIDTH | Data width of the router |
 | FLIT_BUFFER_DEPTH | Input flit buffer depth |
+| PIPELINE_ROUTE_COMPUTE | Splits route computation into a separate pipeline stage |
+| PIPELINE_ARBITER | Splits the abitration and switch traversal into separate pipeline stages |
 | PIPELINE_OUTPUT | Adds an extra pipeline stage at the output of the router |
 | DISABLE_SELFLOOP | Disables path from input i to output i, useful in a mesh NoC |
 | FORCE_MLAB | Forces the flit buffers to use MLABs (LUTRAM) instead of M20Ks (BRAM) (Advanced) |

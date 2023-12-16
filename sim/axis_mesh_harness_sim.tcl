@@ -29,7 +29,7 @@ source $QSYS_SIMDIR/mentor/msim_setup.tcl
 # the top level. (These are all the files required for simulation other
 # than the files compiled by the Quartus-generated IP simulation script)
 #
-vlog +acc $QSYS_SIMDIR/../testbench/axis_mesh_harness_tb_sim.sv $QSYS_SIMDIR/../*sv $QSYS_SIMDIR/../test_harness/*sv
+vlog $QSYS_SIMDIR/../testbench/axis_mesh_harness_tb_sim.sv $QSYS_SIMDIR/../*sv $QSYS_SIMDIR/../test_harness/*sv
 #
 # Set the top-level simulation or testbench module/entity name, which is
 # used by the elab command to elaborate the top level.
@@ -40,37 +40,29 @@ set TOP_LEVEL_NAME axis_mesh_harness_tb_sim
 # set USER_DEFINED_ELAB_OPTIONS <elaboration options>
 #
 # Call command to elaborate your design and testbench.
-elab_debug
+elab
 #
-add wave -position insertpoint  \
-sim:/axis_mesh_harness_tb_sim/ticks \
-sim:/axis_mesh_harness_tb_sim/axis_in_tvalid \
-sim:/axis_mesh_harness_tb_sim/axis_in_tready \
-sim:/axis_mesh_harness_tb_sim/axis_in_tdata \
-sim:/axis_mesh_harness_tb_sim/axis_in_tlast \
-sim:/axis_mesh_harness_tb_sim/axis_in_tdest \
-sim:/axis_mesh_harness_tb_sim/axis_in_tid \
-sim:/axis_mesh_harness_tb_sim/axis_out_tvalid \
-sim:/axis_mesh_harness_tb_sim/axis_out_tready \
-sim:/axis_mesh_harness_tb_sim/axis_out_tdata \
-sim:/axis_mesh_harness_tb_sim/axis_out_tlast \
-sim:/axis_mesh_harness_tb_sim/axis_out_tdest \
-sim:/axis_mesh_harness_tb_sim/axis_out_tid \
-sim:/axis_mesh_harness_tb_sim/done \
-sim:/axis_mesh_harness_tb_sim/sent_packets \
-sim:/axis_mesh_harness_tb_sim/recv_packets \
-sim:/axis_mesh_harness_tb_sim/error
-add wave -position insertpoint  \
-sim:/axis_mesh_harness_tb_sim/clk \
-sim:/axis_mesh_harness_tb_sim/rst_n
-
 # add wave -position insertpoint  \
-# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_write} \
-# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_empty} \
-# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_full} \
-# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/dest_lfsr_out} \
-# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/load_lfsr_out} \
-# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/total_sent_packets}
+# sim:/axis_mesh_harness_tb_sim/ticks \
+# sim:/axis_mesh_harness_tb_sim/axis_in_tvalid \
+# sim:/axis_mesh_harness_tb_sim/axis_in_tready \
+# sim:/axis_mesh_harness_tb_sim/axis_in_tdata \
+# sim:/axis_mesh_harness_tb_sim/axis_in_tlast \
+# sim:/axis_mesh_harness_tb_sim/axis_in_tdest \
+# sim:/axis_mesh_harness_tb_sim/axis_in_tid \
+# sim:/axis_mesh_harness_tb_sim/axis_out_tvalid \
+# sim:/axis_mesh_harness_tb_sim/axis_out_tready \
+# sim:/axis_mesh_harness_tb_sim/axis_out_tdata \
+# sim:/axis_mesh_harness_tb_sim/axis_out_tlast \
+# sim:/axis_mesh_harness_tb_sim/axis_out_tdest \
+# sim:/axis_mesh_harness_tb_sim/axis_out_tid \
+# sim:/axis_mesh_harness_tb_sim/done \
+# sim:/axis_mesh_harness_tb_sim/sent_packets \
+# sim:/axis_mesh_harness_tb_sim/recv_packets \
+# sim:/axis_mesh_harness_tb_sim/error
+# add wave -position insertpoint  \
+# sim:/axis_mesh_harness_tb_sim/clk \
+# sim:/axis_mesh_harness_tb_sim/rst_n
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/clk} \
@@ -87,6 +79,7 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/credit_in} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/route_table} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/route_table_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/route_sa_reg} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/route_table_select} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/receiving_packet} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/transiting_packet} \
@@ -102,14 +95,33 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/hold} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant_mask} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_reg0} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_reg0_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant_input} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_rc_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_rc_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_rc_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_rc_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/rc_pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/sa_pipeline_enable} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_packed} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_out_valid} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_reg_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_reg_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/credit_counter}
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/credit_counter} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant_pipeline_in} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant_pipeline_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/output_stalled}
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/clk} \
@@ -126,6 +138,7 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/credit_in} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/route_table} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/route_table_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/route_sa_reg} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/route_table_select} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/receiving_packet} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/transiting_packet} \
@@ -141,14 +154,33 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/hold} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/grant} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/grant_mask} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_reg0} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_reg0_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/grant_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/grant_input} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_rc_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_rc_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_rc_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_rc_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/rc_pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_sa_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_sa_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_sa_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_sa_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_sa_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/sa_pipeline_enable} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_packed} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/flit_out_valid} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_reg_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/data_out_reg_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/credit_counter}
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/credit_counter} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/grant_pipeline_in} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/grant_pipeline_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/output_stalled}
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/clk} \
@@ -165,6 +197,7 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/credit_in} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/route_table} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/route_table_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/route_sa_reg} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/route_table_select} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/receiving_packet} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/transiting_packet} \
@@ -180,14 +213,33 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/hold} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant_mask} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_reg0} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_reg0_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant_input} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_rc_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_rc_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_rc_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_rc_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/rc_pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/sa_pipeline_enable} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_packed} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_out_valid} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_reg_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_reg_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/credit_counter}
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/credit_counter} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant_pipeline_in} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant_pipeline_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/output_stalled}
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/clk} \
@@ -204,6 +256,7 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/credit_in} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/route_table} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/route_table_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/route_sa_reg} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/route_table_select} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/receiving_packet} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/transiting_packet} \
@@ -219,20 +272,41 @@ sim:/axis_mesh_harness_tb_sim/rst_n
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/hold} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant_mask} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_reg0_flit} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_reg0_dest} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_reg0_is_tail} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_reg0_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant_input} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_rc_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_rc_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_rc_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_rc_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/rc_pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg_flit} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg_dest} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg_is_tail} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/sa_pipeline_enable} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_packed} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_flit} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_dest} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_out_valid} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_reg} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_reg_flit} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_reg_dest} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_reg_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_reg_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/credit_counter}
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/credit_counter} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant_pipeline_in} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant_pipeline_out} \
+# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/output_stalled}
+
+# add wave -position insertpoint  \
+# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_write} \
+# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_empty} \
+# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_full} \
+# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/dest_lfsr_out} \
+# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/load_lfsr_out} \
+# {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/total_sent_packets}
 
 # Run the simulation.
 run -a

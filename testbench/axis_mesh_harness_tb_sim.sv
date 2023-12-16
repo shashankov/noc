@@ -10,7 +10,7 @@ module axis_mesh_harness_tb_sim();
     localparam PACKET_COUNT = 1 << 16;
 
     localparam SERIALIZATION_FACTOR = 1;
-    localparam CLKCROSS_FACTOR = 2;
+    localparam CLKCROSS_FACTOR = 1;
 
     localparam SINGLE_CLOCK = ((CLKCROSS_FACTOR == 1) ? 1 : 0);
 
@@ -217,24 +217,26 @@ module axis_mesh_harness_tb_sim();
     endgenerate
 
     axis_mesh #(
-        .NUM_ROWS                   (NUM_ROWS),
-        .NUM_COLS                   (NUM_COLS),
-        .PIPELINE_LINKS             (1),
+        .NUM_ROWS                       (NUM_ROWS),
+        .NUM_COLS                       (NUM_COLS),
+        .PIPELINE_LINKS                 (0),
 
-        .TDEST_WIDTH                (TDEST_WIDTH),
-        .TDATA_WIDTH                (DATA_WIDTH),
-        .SERIALIZATION_FACTOR       (SERIALIZATION_FACTOR),
-        .CLKCROSS_FACTOR            (CLKCROSS_FACTOR),
-        .SINGLE_CLOCK               (SINGLE_CLOCK),
-        .SERDES_IN_BUFFER_DEPTH     (4),
-        .SERDES_OUT_BUFFER_DEPTH    (32),
-        .SERDES_EXTRA_SYNC_STAGES   (0),
+        .TDEST_WIDTH                    (TDEST_WIDTH),
+        .TDATA_WIDTH                    (DATA_WIDTH),
+        .SERIALIZATION_FACTOR           (SERIALIZATION_FACTOR),
+        .CLKCROSS_FACTOR                (CLKCROSS_FACTOR),
+        .SINGLE_CLOCK                   (SINGLE_CLOCK),
+        .SERDES_IN_BUFFER_DEPTH         (4),
+        .SERDES_OUT_BUFFER_DEPTH        (32),
+        .SERDES_EXTRA_SYNC_STAGES       (0),
 
-        .FLIT_BUFFER_DEPTH          (8),
-        .ROUTING_TABLE_PREFIX       ("routing_tables/mesh_2x2/"),
-        .ROUTER_PIPELINE_OUTPUT     (1),
-        .ROUTER_DISABLE_SELFLOOP    (0),
-        .ROUTER_FORCE_MLAB          (0)
+        .FLIT_BUFFER_DEPTH              (8),
+        .ROUTING_TABLE_PREFIX           ("routing_tables/mesh_2x2/"),
+        .ROUTER_PIPELINE_ROUTE_COMPUTE  (1),
+        .ROUTER_PIPELINE_ARBITER        (0),
+        .ROUTER_PIPELINE_OUTPUT         (1),
+        .ROUTER_DISABLE_SELFLOOP        (0),
+        .ROUTER_FORCE_MLAB              (0)
     ) dut (
         .clk_noc(clk_noc),
         .clk_usr(clk),

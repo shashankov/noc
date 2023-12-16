@@ -18,6 +18,7 @@ module router #(
     parameter DEST_WIDTH = 3,
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
+    parameter PIPELINE_ROUTE_COMPUTE = 0,
     parameter PIPELINE_ARBITER = 0,
     parameter PIPELINE_OUTPUT = 0,
     parameter DISABLE_SELFLOOP = 0,     // Useful for IO pairs where data will not go back to the same router
@@ -76,6 +77,7 @@ module router #(
     logic [DEST_WIDTH - 1: 0]                   flit_rc_reg_dest[NUM_INPUTS];
     logic                                       flit_rc_reg_is_tail[NUM_INPUTS];
     logic                                       flit_rc_reg_valid[NUM_INPUTS];
+    logic                                       rc_pipeline_enable[NUM_INPUTS];
 
     // Input pipeline signals (Unpacked for easier debugging)
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  flit_sa_reg[NUM_INPUTS];
@@ -83,8 +85,8 @@ module router #(
     logic [DEST_WIDTH - 1: 0]                   flit_sa_reg_dest[NUM_INPUTS];
     logic                                       flit_sa_reg_is_tail[NUM_INPUTS];
     logic                                       flit_sa_reg_valid[NUM_INPUTS];
+    logic                                       sa_pipeline_enable[NUM_INPUTS];
 
-    logic                                       pipeline_enable[NUM_INPUTS];
 
     // Crossbar signals (Unpacked for easier debugging)
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]  data_out_packed[NUM_OUTPUTS];
@@ -126,7 +128,7 @@ module router #(
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             // Read flit buffer when the pipeline is free
-            assign flit_buffer_rdreq[i] = ~flit_buffer_empty[i] & (~flit_rc_reg_valid[i] | pipeline_enable[i]);
+            assign flit_buffer_rdreq[i] = ~flit_buffer_empty[i] & (rc_pipeline_enable[i] | ~flit_buffer_valid[i]);
 
             // Generate credits based on flit buffer reads
             assign credit_out[i] = flit_buffer_rdreq[i];
@@ -164,25 +166,6 @@ module router #(
                 credit_counter[i] <= FLIT_BUFFER_DEPTH;
             end else begin
                 credit_counter[i] <= credit_counter[i] + credit_in[i] - send_out[i];
-            end
-        end
-    end
-
-    // Registered logic to read from the routing table
-    always_ff @(posedge clk) begin
-        for (int i = 0; i < NUM_INPUTS; i++) begin
-            if (~flit_rc_reg_valid[i] | pipeline_enable[i])
-                route_table_out[i] <= route_table[route_table_select[i]];
-        end
-    end
-
-    // First stage flit pipeline (parallel to routing table lookup)
-    always_ff @(posedge clk) begin
-        for (int i = 0; i < NUM_INPUTS; i++) begin
-            if (~flit_rc_reg_valid[i] | pipeline_enable[i]) begin
-                flit_rc_reg_flit[i] <= flit_buffer_out[i];
-                flit_rc_reg_dest[i] <= dest_buffer_out[i];
-                flit_rc_reg_is_tail[i] <= flit_buffer_is_tail_out[i];
             end
         end
     end
@@ -253,17 +236,11 @@ module router #(
         for (int i = 0; i < NUM_INPUTS; i++) begin
             if (rst_n == 1'b0) begin
                 flit_buffer_valid[i] <= '0;
-                flit_rc_reg_valid[i] <= '0;
             end else begin
-                if (pipeline_enable[i] | ~flit_rc_reg_valid[i])
+                if (rc_pipeline_enable[i])
                     flit_buffer_valid[i] <= 1'b0;
                 if (flit_buffer_rdreq[i])
                     flit_buffer_valid[i] <= 1'b1;
-
-                if (pipeline_enable[i])
-                    flit_rc_reg_valid[i] <= 1'b0;
-                if (flit_buffer_valid[i])
-                    flit_rc_reg_valid[i] <= 1'b1;
             end
         end
     end
@@ -370,6 +347,37 @@ module router #(
     end
     endgenerate
 
+    // Route Compute Pipeline
+    generate begin: route_compute_pipeline_gen
+        genvar i;
+        for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
+            rc_pipeline #(
+                .DATA_WIDTH (FLIT_WIDTH),
+                .DEST_WIDTH (DEST_WIDTH),
+                .NUM_OUTPUTS(NUM_OUTPUTS),
+                .ENABLE     (PIPELINE_ROUTE_COMPUTE))
+            route_compute_pipeline_inst (
+                .clk        (clk),
+                .rst_n      (rst_n),
+
+                .data_in    (flit_buffer_out[i]),
+                .dest_in    (dest_buffer_out[i]),
+                .is_tail_in (flit_buffer_is_tail_out[i]),
+                .route_in   (route_table[route_table_select[i]]),
+                .valid_in   (flit_buffer_valid[i]),
+                .enable_out (rc_pipeline_enable[i]),
+
+                .data_out   (flit_rc_reg_flit[i]),
+                .dest_out   (flit_rc_reg_dest[i]),
+                .is_tail_out(flit_rc_reg_is_tail[i]),
+                .valid_out  (flit_rc_reg_valid[i]),
+                .route_out  (route_table_out[i]),
+                .enable_in  (sa_pipeline_enable[i])
+            );
+        end
+    end
+    endgenerate
+
     // Arbiter Pipeline
     logic [NUM_OUTPUTS - 1 : 0] grant_pipeline_in [NUM_INPUTS];
     logic [NUM_OUTPUTS - 1 : 0] grant_pipeline_out[NUM_INPUTS];
@@ -408,7 +416,7 @@ module router #(
                 .grant_in   (grant_pipeline_in[i]),
                 .route_in   (route_table_out[i]),
                 .valid_in   (flit_rc_reg_valid[i]),
-                .enable_out (pipeline_enable[i]),
+                .enable_out (sa_pipeline_enable[i]),
 
                 .data_out   (flit_sa_reg_flit[i]),
                 .dest_out   (flit_sa_reg_dest[i]),
@@ -671,6 +679,63 @@ module crossbar_onehot #(
     endgenerate
 
 endmodule: crossbar_onehot
+
+module rc_pipeline #(
+    parameter DATA_WIDTH = 32,
+    parameter DEST_WIDTH = 4,
+    parameter NUM_OUTPUTS = 2,
+    parameter ENABLE = 1
+) (
+    input wire clk,
+    input wire rst_n,
+
+    input   wire    [DATA_WIDTH - 1 : 0]            data_in,
+    input   wire    [DEST_WIDTH - 1 : 0]            dest_in,
+    input   wire                                    is_tail_in,
+    input   wire    [$clog2(NUM_OUTPUTS) - 1 : 0]   route_in,
+    input   wire                                    valid_in,
+    output  logic                                   enable_out,
+
+    output  logic   [DATA_WIDTH - 1 : 0]            data_out,
+    output  logic   [DEST_WIDTH - 1 : 0]            dest_out,
+    output  logic                                   is_tail_out,
+    output  logic   [$clog2(NUM_OUTPUTS) - 1 : 0]   route_out,
+    output  logic                                   valid_out,
+    input   wire                                    enable_in
+);
+
+    generate begin: enable_gen
+        if (ENABLE == 1) begin
+            always_ff @(posedge clk) begin
+                if (rst_n == 1'b0) begin
+                    valid_out <= '0;
+                end else begin
+                    if (enable_in) valid_out <= 1'b0;
+                    if (valid_in) valid_out <= 1'b1;
+                end
+
+                if (~valid_out | enable_in) begin
+                    data_out <= data_in;
+                    dest_out <= dest_in;
+                    is_tail_out <= is_tail_in;
+                    route_out <= route_in;
+                end
+            end
+            assign enable_out = enable_in | ~valid_out;
+        end else if (ENABLE == 0) begin
+            assign data_out = data_in;
+            assign dest_out = dest_in;
+            assign is_tail_out = is_tail_in;
+            assign route_out = route_in;
+            assign valid_out = valid_in;
+
+            assign enable_out = enable_in;
+        end else
+            $fatal(0, "Invalid ENABLE parameter");
+    end
+    endgenerate
+
+endmodule: rc_pipeline
 
 module sa_pipeline #(
     parameter DATA_WIDTH = 32,

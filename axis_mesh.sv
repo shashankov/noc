@@ -31,6 +31,8 @@ module axis_mesh #(
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/",
 
+    parameter ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
+    parameter ROUTER_PIPELINE_ARBITER = 0,
     parameter ROUTER_PIPELINE_OUTPUT = 1,
     parameter ROUTER_DISABLE_SELFLOOP = 1,
     parameter ROUTER_FORCE_MLAB = 0
@@ -164,16 +166,18 @@ module axis_mesh #(
     endgenerate
 
     mesh #(
-        .NUM_ROWS                  (NUM_ROWS),
-        .NUM_COLS                  (NUM_COLS),
-        .PIPELINE_LINKS            (PIPELINE_LINKS),
-        .DEST_WIDTH                (DEST_WIDTH),
-        .FLIT_WIDTH                (FLIT_WIDTH),
-        .FLIT_BUFFER_DEPTH         (FLIT_BUFFER_DEPTH),
-        .ROUTING_TABLE_PREFIX      (ROUTING_TABLE_PREFIX),
-        .ROUTER_PIPELINE_OUTPUT    (ROUTER_PIPELINE_OUTPUT),
-        .ROUTER_DISABLE_SELFLOOP   (ROUTER_DISABLE_SELFLOOP),
-        .ROUTER_FORCE_MLAB         (ROUTER_FORCE_MLAB)
+        .NUM_ROWS                       (NUM_ROWS),
+        .NUM_COLS                       (NUM_COLS),
+        .PIPELINE_LINKS                 (PIPELINE_LINKS),
+        .DEST_WIDTH                     (DEST_WIDTH),
+        .FLIT_WIDTH                     (FLIT_WIDTH),
+        .FLIT_BUFFER_DEPTH              (FLIT_BUFFER_DEPTH),
+        .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
+        .ROUTER_PIPELINE_ROUTE_COMPUTE  (ROUTER_PIPELINE_ROUTE_COMPUTE),
+        .ROUTER_PIPELINE_ARBITER        (ROUTER_PIPELINE_ARBITER),
+        .ROUTER_PIPELINE_OUTPUT         (ROUTER_PIPELINE_OUTPUT),
+        .ROUTER_DISABLE_SELFLOOP        (ROUTER_DISABLE_SELFLOOP),
+        .ROUTER_FORCE_MLAB              (ROUTER_FORCE_MLAB)
     ) noc (
         .clk            (clk_noc),
         .rst_n          (rst_n_noc_sync),
