@@ -659,7 +659,7 @@ module axis_shim_out #(
 
     assign axis_tvalid = ~buffer_empty;
 
-    assign credit_out = ((credit_count < FLIT_BUFFER_DEPTH) || send_in) &
+    assign credit_out = ((credit_count < FLIT_BUFFER_DEPTH) || send_in) &&
                         ((credit_count < (BUFFER_DEPTH - buffer_usedw)) || (axis_tready & axis_tvalid));
 
     fifo_agilex7 #(

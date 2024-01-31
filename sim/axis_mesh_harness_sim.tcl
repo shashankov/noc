@@ -107,7 +107,6 @@ elab
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg_dest} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/flit_sa_reg_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/sa_pipeline_enable} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_packed} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_flit} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/data_out_dest} \
@@ -121,7 +120,6 @@ elab
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/credit_counter} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant_pipeline_in} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/grant_pipeline_out} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[0]/router_inst/output_stalled}
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[0]/for_cols[1]/router_inst/clk} \
@@ -225,7 +223,6 @@ elab
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg_dest} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/flit_sa_reg_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/sa_pipeline_enable} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_packed} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_flit} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/data_out_dest} \
@@ -239,7 +236,6 @@ elab
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/credit_counter} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant_pipeline_in} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/grant_pipeline_out} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[0]/router_inst/output_stalled}
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/clk} \
@@ -284,7 +280,6 @@ elab
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg_dest} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg_is_tail} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/flit_sa_reg_valid} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/sa_pipeline_enable} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_packed} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_flit} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/data_out_dest} \
@@ -298,7 +293,6 @@ elab
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/credit_counter} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant_pipeline_in} \
 # {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/grant_pipeline_out} \
-# {sim:/axis_mesh_harness_tb_sim/dut/noc/router_gen/for_rows[1]/for_cols[1]/router_inst/output_stalled}
 
 # add wave -position insertpoint  \
 # {sim:/axis_mesh_harness_tb_sim/harness_gen/for_rows[0]/for_cols[0]/tg_inst/fifo_write} \
