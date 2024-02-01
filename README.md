@@ -41,6 +41,21 @@ Describes a Mesh NoC using the [router interface](#router-interface) for IO pair
 | PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
 | ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
 
+#### Directional Torus NoC (directional_torus.sv)
+
+Describes a Directional Torus NoC using the [router interface](#router-interface) for IO pairs. Without loss of generality, links go W -> E and N -> S and wrap around at the edges.
+
+##### Directional Torus Specific Parameters
+Note: The ROUTER_DISABLE_SELFLOOP option is removed from the directional torus topology since it does not make sense without IO pairs.
+
+| Parameter | Description |
+| --------: | :---------- |
+| NUM_ROWS | Number of rows in the mesh |
+| NUM_COLS | Number of columns in the mesh |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| EXTRA_PIPELINE_LONG_LINKS | Number of **extra** pipeline registers to add to the links that wrap around (adds to PIPELINE_LINKS) |
+| ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
+
 #### (Double-)Ring NoC ((double_)ring.sv)
 
 Describes a (double-)ring NoC using the [router interface](#router-interface) for IO pairs.

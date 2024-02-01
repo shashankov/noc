@@ -3,24 +3,6 @@
 import numpy as np
 import sys
 
-def calculate_port(num_rows, num_cols, row_id, col_id, dir):
-    port = 1
-    if (dir == "NORTH"):
-        return port
-    if (row_id != 0):
-        port += 1
-
-    if (dir == "SOUTH"):
-        return port
-    if (row_id != num_rows - 1):
-        port += 1
-
-    if (dir == "EAST"):
-        return port
-    if (col_id != num_cols - 1):
-        port += 1
-
-    return port
 
 def generate_table(num_rows, num_cols, row_id, col_id):
     num_routers = num_rows * num_cols
@@ -30,14 +12,10 @@ def generate_table(num_rows, num_cols, row_id, col_id):
             if (j == col_id):
                 if (i == row_id):
                     table[i * num_cols + j] = 0
-                elif (i < row_id):
-                    table[i * num_cols + j] = calculate_port(num_rows, num_cols, row_id, col_id, "NORTH")
                 else:
-                    table[i * num_cols + j] = calculate_port(num_rows, num_cols, row_id, col_id, "SOUTH")
-            elif (j < col_id):
-                table[i * num_cols + j] = calculate_port(num_rows, num_cols, row_id, col_id, "WEST")
+                    table[i * num_cols + j] = 1
             else:
-                table[i * num_cols + j] = calculate_port(num_rows, num_cols, row_id, col_id, "EAST")
+                table[i * num_cols + j] = 2
 
     return table
 

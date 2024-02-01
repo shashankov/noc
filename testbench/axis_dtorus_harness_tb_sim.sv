@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module axis_mesh_harness_tb_sim();
+module axis_dtorus_harness_tb_sim();
     localparam NUM_ROWS = 2;
     localparam NUM_COLS = 2;
     localparam DATA_WIDTH = 64;
@@ -85,7 +85,7 @@ module axis_mesh_harness_tb_sim();
     logic [15 : 0] load;
     // real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.525, 0.55, 0.56, 0.57, 0.575, 0.58, 0.585, 0.59, 0.6};
     // real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.66, 0.67, 0.675, 0.68, 0.685, 0.69, 0.7};
-    real sweep_load[] = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.68, 0.69, 0.7, 0.8};
+    real sweep_load[] = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.68, 0.69, 0.7, 0.8, 0.9};
     // real sweep_load[] = {0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01};
 
     initial begin
@@ -95,7 +95,7 @@ module axis_mesh_harness_tb_sim();
                 start[i][j] = 1'b0;
             end
         end
-        for (int load_idx = 0; load_idx < 12; load_idx = load_idx + 1) begin
+        for (int load_idx = 0; load_idx < 13; load_idx = load_idx + 1) begin
             load =  int'(((1 << 16) - 1) * sweep_load[load_idx]);
             @(negedge clk);
             $display("Load = %f", $itor(load) / $itor((1 << 16) - 1));
@@ -218,10 +218,11 @@ module axis_mesh_harness_tb_sim();
     end
     endgenerate
 
-    axis_mesh #(
+    axis_directional_torus #(
         .NUM_ROWS                       (NUM_ROWS),
         .NUM_COLS                       (NUM_COLS),
         .PIPELINE_LINKS                 (0),
+        .EXTRA_PIPELINE_LONG_LINKS      (0),
 
         .TDEST_WIDTH                    (TDEST_WIDTH),
         .TDATA_WIDTH                    (DATA_WIDTH),
@@ -233,11 +234,10 @@ module axis_mesh_harness_tb_sim();
         .SERDES_EXTRA_SYNC_STAGES       (0),
 
         .FLIT_BUFFER_DEPTH              (8),
-        .ROUTING_TABLE_PREFIX           ("routing_tables/mesh_2x2/"),
+        .ROUTING_TABLE_PREFIX           ("routing_tables/dtorus_2x2/"),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (1),
         .ROUTER_PIPELINE_ARBITER        (0),
         .ROUTER_PIPELINE_OUTPUT         (1),
-        .ROUTER_DISABLE_SELFLOOP        (0),
         .ROUTER_FORCE_MLAB              (0)
     ) dut (
         .clk_noc(clk_noc),
@@ -259,4 +259,4 @@ module axis_mesh_harness_tb_sim();
         .axis_out_tdest
     );
 
-endmodule: axis_mesh_harness_tb_sim
+endmodule: axis_dtorus_harness_tb_sim
