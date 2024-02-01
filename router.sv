@@ -58,11 +58,12 @@ module router #(
     logic                       dest_buffer_rdreq   [NUM_INPUTS];
 
     // Flit buffer FIFO signals
-    logic [FLIT_WIDTH - 1 : 0]  flit_buffer_out             [NUM_INPUTS];
-    logic                       flit_buffer_is_tail_out     [NUM_INPUTS];
-    logic                       flit_buffer_empty           [NUM_INPUTS];
-    logic                       flit_buffer_rdreq           [NUM_INPUTS];
-    logic                       flit_buffer_valid           [NUM_INPUTS];
+    logic [FLIT_WIDTH - 1 : 0]  flit_buffer_out     [NUM_INPUTS];
+    logic                       tail_buffer_out     [NUM_INPUTS];
+    logic                       tail_buffer_empty   [NUM_INPUTS];
+    logic                       flit_buffer_rdreq   [NUM_INPUTS];
+    logic                       tail_buffer_rdreq   [NUM_INPUTS];
+    logic                       tail_buffer_valid   [NUM_INPUTS];
 
     // Arbiter signals
     logic [NUM_INPUTS - 1 : 0] request     [NUM_OUTPUTS];
@@ -73,7 +74,7 @@ module router #(
     logic [NUM_INPUTS - 1 : 0] grant_input;
 
     // Route Compute output pipeline signals
-    logic [FLIT_WIDTH - 1: 0]                       flit_rc_reg_flit[NUM_INPUTS];
+    // logic [FLIT_WIDTH - 1: 0]                       flit_rc_reg_flit[NUM_INPUTS];
     logic [DEST_WIDTH - 1: 0]                       flit_rc_reg_dest[NUM_INPUTS];
     logic                                           flit_rc_reg_is_tail[NUM_INPUTS];
     logic [$clog2(FLIT_BUFFER_DEPTH + 2) - 1: 0]    rc_reg_credit_proxy[NUM_INPUTS];
@@ -82,7 +83,7 @@ module router #(
 
     // Switch Allocation output pipeline signals (Unpacked for easier debugging)
     logic [FLIT_WIDTH + DEST_WIDTH + 1 - 1: 0]      flit_sa_reg[NUM_INPUTS];
-    logic [FLIT_WIDTH - 1: 0]                       flit_sa_reg_flit[NUM_INPUTS];
+    // logic [FLIT_WIDTH - 1: 0]                       flit_sa_reg_flit[NUM_INPUTS];
     logic [DEST_WIDTH - 1: 0]                       flit_sa_reg_dest[NUM_INPUTS];
     logic                                           flit_sa_reg_is_tail[NUM_INPUTS];
     logic                                           flit_sa_reg_valid[NUM_INPUTS];
@@ -131,13 +132,13 @@ module router #(
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             // Read flit buffer when the pipeline is free
-            assign flit_buffer_rdreq[i] = ~flit_buffer_empty[i] & (rc_pipeline_enable[i] | ~flit_buffer_valid[i]);
+            assign tail_buffer_rdreq[i] = ~tail_buffer_empty[i] & (rc_pipeline_enable[i] | ~tail_buffer_valid[i]);
 
             // Generate credits based on flit buffer reads
             assign credit_out[i] = flit_buffer_rdreq[i];
 
             // Read dest buffer when a new packet begins
-            assign dest_buffer_rdreq[i] = flit_buffer_rdreq[i] & ~(transiting_packet[i] & ~flit_buffer_is_tail_out[i]);
+            assign dest_buffer_rdreq[i] = tail_buffer_rdreq[i] & ~(transiting_packet[i] & ~tail_buffer_out[i]);
 
             // Index into the routing table using the destination
             assign route_table_select[i] = dest_buffer_out[i][$clog2(NOC_NUM_ENDPOINTS) - 1 : 0];
@@ -223,9 +224,9 @@ module router #(
                 transiting_packet[i] <= 1'b0;
             end else begin
                 receiving_packet[i] <= send_in[i] ? ~is_tail_in[i] : receiving_packet[i];
-                if (flit_buffer_valid[i])
-                    transiting_packet[i] <= ~flit_buffer_is_tail_out[i];
-                if (flit_buffer_rdreq[i])
+                if (tail_buffer_valid[i])
+                    transiting_packet[i] <= ~tail_buffer_out[i];
+                if (tail_buffer_rdreq[i])
                     transiting_packet[i] <= 1'b1;
             end
         end
@@ -249,12 +250,12 @@ module router #(
     always_ff @(posedge clk) begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
             if (rst_n == 1'b0) begin
-                flit_buffer_valid[i] <= '0;
+                tail_buffer_valid[i] <= '0;
             end else begin
                 if (rc_pipeline_enable[i])
-                    flit_buffer_valid[i] <= 1'b0;
-                if (flit_buffer_rdreq[i])
-                    flit_buffer_valid[i] <= 1'b1;
+                    tail_buffer_valid[i] <= 1'b0;
+                if (tail_buffer_rdreq[i])
+                    tail_buffer_valid[i] <= 1'b1;
             end
         end
     end
@@ -295,6 +296,19 @@ module router #(
         end
     end
 
+    // Assign flit buffer read request to bypass the pipeline
+    always_comb begin
+        for (int i = 0; i < NUM_INPUTS; i++) begin
+            if (PIPELINE_ARBITER == 1) begin
+                flit_buffer_rdreq[i] = sa_pipeline_enable[i] & grant_input[i] & flit_rc_reg_valid[i];
+            end else if (PIPELINE_ROUTE_COMPUTE == 1) begin
+                flit_buffer_rdreq[i] = rc_pipeline_enable[i] & tail_buffer_valid[i];
+            end else begin
+                flit_buffer_rdreq[i] = tail_buffer_rdreq[i];
+            end
+        end
+    end
+
     /**************************************************************************/
     /***************************** Instantiations *****************************/
     /**************************************************************************/
@@ -304,18 +318,40 @@ module router #(
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             fifo_agilex7 #(
-                .WIDTH      (FLIT_WIDTH + 1),
+                .WIDTH      (FLIT_WIDTH),
                 .DEPTH      (FLIT_BUFFER_DEPTH),
                 .FORCE_MLAB (FORCE_MLAB))
             flit_buffer (
                 .clock  (clk),
-                .data   ({data_in[i], is_tail_in[i]}),
+                .data   (data_in[i]),
                 .rdreq  (flit_buffer_rdreq[i]),
                 .sclr   (~rst_n),
                 .wrreq  (send_in[i]),
-                .empty  (flit_buffer_empty[i]),
+                // .empty  (tail_buffer_empty[i]),
                 .full   (),                             // Handled with credits
-                .q      ({flit_buffer_out[i], flit_buffer_is_tail_out[i]})
+                .q      (flit_buffer_out[i])
+            );
+        end
+    end
+    endgenerate
+
+    // Tail buffer FIFOs
+    generate begin: tail_buffer_gen
+        genvar i;
+        for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
+            fifo_agilex7 #(
+                .WIDTH      (1),
+                .DEPTH      (FLIT_BUFFER_DEPTH))
+                // .FORCE_MLAB (FORCE_MLAB))
+            tail_buffer (
+                .clock  (clk),
+                .data   (is_tail_in[i]),
+                .rdreq  (tail_buffer_rdreq[i]),
+                .sclr   (~rst_n),
+                .wrreq  (send_in[i]),
+                .empty  (tail_buffer_empty[i]),
+                .full   (),                             // Handled with credits
+                .q      (tail_buffer_out[i])
             );
         end
     end
@@ -375,15 +411,15 @@ module router #(
                 .clk                (clk),
                 .rst_n              (rst_n),
 
-                .data_in            (flit_buffer_out[i]),
+                // .data_in            (flit_buffer_out[i]),
                 .dest_in            (dest_buffer_out[i]),
-                .is_tail_in         (flit_buffer_is_tail_out[i]),
+                .is_tail_in         (tail_buffer_out[i]),
                 .route_in           (route_table[route_table_select[i]]),
                 .credit_count_in    (credit_counter_plus),
-                .valid_in           (flit_buffer_valid[i]),
+                .valid_in           (tail_buffer_valid[i]),
                 .enable_out         (rc_pipeline_enable[i]),
 
-                .data_out           (flit_rc_reg_flit[i]),
+                // .data_out           (flit_rc_reg_flit[i]),
                 .dest_out           (flit_rc_reg_dest[i]),
                 .is_tail_out        (flit_rc_reg_is_tail[i]),
                 .credit_count_out   (rc_reg_credit_proxy[i]),
@@ -424,14 +460,14 @@ module router #(
 
                 .grant              (grant_input[i]),
 
-                .data_in            (flit_rc_reg_flit[i]),
+                // .data_in            (flit_rc_reg_flit[i]),
                 .dest_in            (flit_rc_reg_dest[i]),
                 .is_tail_in         (flit_rc_reg_is_tail[i]),
                 .grant_in           (grant_pipeline_in[i]),
                 .route_in           (route_table_out[i]),
                 .valid_in           (flit_rc_reg_valid[i]),
 
-                .data_out           (flit_sa_reg_flit[i]),
+                // .data_out           (flit_sa_reg_flit[i]),
                 .dest_out           (flit_sa_reg_dest[i]),
                 .is_tail_out        (flit_sa_reg_is_tail[i]),
                 .grant_out          (grant_pipeline_out[i]),
@@ -446,7 +482,8 @@ module router #(
     // Crossbar
     always_comb begin
         for (int i = 0; i < NUM_INPUTS; i++) begin
-            flit_sa_reg[i] = {flit_sa_reg_flit[i], flit_sa_reg_dest[i], flit_sa_reg_is_tail[i]};
+            // Directly connect the data FIFO into the crossbar
+            flit_sa_reg[i] = {flit_buffer_out[i], flit_sa_reg_dest[i], flit_sa_reg_is_tail[i]};
         end
 
         for (int i = 0; i < NUM_OUTPUTS; i++) begin

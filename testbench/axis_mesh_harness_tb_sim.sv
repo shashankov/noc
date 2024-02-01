@@ -10,7 +10,7 @@ module axis_mesh_harness_tb_sim();
     localparam PACKET_COUNT = 1 << 14;
 
     localparam SERIALIZATION_FACTOR = 1;
-    localparam CLKCROSS_FACTOR = 1;
+    localparam CLKCROSS_FACTOR = 4;
 
     localparam SINGLE_CLOCK = ((CLKCROSS_FACTOR == 1) ? 1 : 0);
 
@@ -234,7 +234,7 @@ module axis_mesh_harness_tb_sim();
 
         .FLIT_BUFFER_DEPTH              (8),
         .ROUTING_TABLE_PREFIX           ("routing_tables/mesh_2x2/"),
-        .ROUTER_PIPELINE_ROUTE_COMPUTE  (1),
+        .ROUTER_PIPELINE_ROUTE_COMPUTE  (0),
         .ROUTER_PIPELINE_ARBITER        (0),
         .ROUTER_PIPELINE_OUTPUT         (1),
         .ROUTER_DISABLE_SELFLOOP        (0),
