@@ -20,7 +20,7 @@
 
     parameter SERIALIZATION_FACTOR = 4,
     parameter CLKCROSS_FACTOR = 1,
-    parameter SINGLE_CLOCK = 0,
+    parameter bit SINGLE_CLOCK = 0,
     parameter SERDES_IN_BUFFER_DEPTH = 4,
     parameter SERDES_OUT_BUFFER_DEPTH = 4,
     parameter SERDES_EXTRA_SYNC_STAGES = 0,

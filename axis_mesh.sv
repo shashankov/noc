@@ -22,7 +22,7 @@ module axis_mesh #(
 
     parameter SERIALIZATION_FACTOR = 4,
     parameter CLKCROSS_FACTOR = 1,
-    parameter SINGLE_CLOCK = 0,
+    parameter bit SINGLE_CLOCK = 0,
     parameter SERDES_IN_BUFFER_DEPTH = 2,
     parameter SERDES_OUT_BUFFER_DEPTH = 2,
     parameter SERDES_EXTRA_SYNC_STAGES = 0,
@@ -31,7 +31,7 @@ module axis_mesh #(
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/",
     parameter OPTIMIZE_FOR_ROUTING = "XY",
-    parameter DISABLE_SELFLOOP = 1,
+    parameter bit DISABLE_SELFLOOP = 1,
 
     parameter bit ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
     parameter bit ROUTER_PIPELINE_ARBITER = 0,
