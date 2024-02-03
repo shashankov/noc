@@ -17,7 +17,7 @@ module axis_serializer_shim_in #(
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -145,7 +145,7 @@ module axis_deserializer_shim_out #(
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -270,7 +270,7 @@ module axis_clkcross_shim_in #(
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -411,7 +411,7 @@ module axis_clkcross_shim_out #(
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -553,7 +553,7 @@ module axis_shim_in #(
     parameter TDATA_WIDTH = 512,
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -625,7 +625,7 @@ module axis_shim_out #(
     parameter TDATA_WIDTH = 512,
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,

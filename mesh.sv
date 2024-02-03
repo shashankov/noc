@@ -16,11 +16,12 @@
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter PIPELINE_LINKS = 0,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/",
-    parameter ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
-    parameter ROUTER_PIPELINE_ARBITER = 0,
-    parameter ROUTER_PIPELINE_OUTPUT = 1,
-    parameter ROUTER_DISABLE_SELFLOOP = 1,
-    parameter ROUTER_FORCE_MLAB = 0
+    parameter bit ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
+    parameter bit ROUTER_PIPELINE_ARBITER = 0,
+    parameter bit ROUTER_PIPELINE_OUTPUT = 1,
+    parameter bit DISABLE_SELFLOOP = 1,
+    parameter OPTIMIZE_FOR_ROUTING = "XY",
+    parameter bit ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -222,7 +223,7 @@
 
     // Generate routers
     generate begin: router_gen
-        genvar i, j;
+        genvar i, j, k, l;
         for (i = 0; i < NUM_ROWS; i = i + 1) begin: for_rows
             for (j = 0; j < NUM_COLS; j = j + 1) begin: for_cols
 
@@ -233,6 +234,25 @@
 
                 // Generate routing table file name
                 localparam string routing_table = $sformatf("%s%0d_%0d.hex", ROUTING_TABLE_PREFIX, i, j);
+
+                bit DISABLE_TURNS[num_io][num_io];
+                for (k = 0; k < num_io; k = k + 1) begin
+                    for (l = 0; l < num_io; l = l + 1) begin
+                        if ((DISABLE_SELFLOOP == 1) && (k == l) && (k == 0)) begin
+                            assign DISABLE_TURNS[k][l] = 1;
+                        end else if ((k == l) && (k != 0) && (OPTIMIZE_FOR_ROUTING == "XY")) begin
+                            assign DISABLE_TURNS[k][l] = 1;
+                        end else if ((k != l) && (l != 0) && (OPTIMIZE_FOR_ROUTING == "XY")) begin
+                            // First and last row disable north to any east and west port
+                            if (((i == 0) || (i == NUM_ROWS - 1)) && (k == 1)) assign DISABLE_TURNS[k][l] = 1;
+                            // All other rows disable north and south to any east and west port
+                            else if (!((i == 0) || (i == NUM_ROWS - 1)) && ((k == 1) || (k == 2)) && (l > 2)) assign DISABLE_TURNS[k][l] = 1;
+                            else assign DISABLE_TURNS[k][l] = 0;
+                        end else begin
+                            assign DISABLE_TURNS[k][l] = 0;
+                        end
+                    end
+                end
 
                 // Instantiate router
                 router #(
@@ -246,7 +266,6 @@
                     .PIPELINE_ROUTE_COMPUTE (ROUTER_PIPELINE_ROUTE_COMPUTE),
                     .PIPELINE_ARBITER       (ROUTER_PIPELINE_ARBITER),
                     .PIPELINE_OUTPUT        (ROUTER_PIPELINE_OUTPUT),
-                    .DISABLE_SELFLOOP       (ROUTER_DISABLE_SELFLOOP),
                     .FORCE_MLAB             (ROUTER_FORCE_MLAB)
                 ) router_inst (
                     .clk            (clk),
@@ -262,7 +281,9 @@
                     .dest_out       (   dest_router_out[ridx][0 : num_io - 1]),
                     .is_tail_out    (is_tail_router_out[ridx][0 : num_io - 1]),
                     .send_out       (   send_router_out[ridx][0 : num_io - 1]),
-                    .credit_in      ( credit_router_in [ridx][0 : num_io - 1])
+                    .credit_in      ( credit_router_in [ridx][0 : num_io - 1]),
+
+                    .DISABLE_TURNS  (DISABLE_TURNS)
                 );
             end
         end

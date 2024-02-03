@@ -18,11 +18,10 @@ module router #(
     parameter DEST_WIDTH = 3,
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
-    parameter PIPELINE_ROUTE_COMPUTE = 0,
-    parameter PIPELINE_ARBITER = 0,
-    parameter PIPELINE_OUTPUT = 0,
-    parameter DISABLE_SELFLOOP = 0,     // Useful for IO pairs where data will not go back to the same router
-    parameter FORCE_MLAB = 1
+    parameter bit PIPELINE_ROUTE_COMPUTE = 0,
+    parameter bit PIPELINE_ARBITER = 0,
+    parameter bit PIPELINE_OUTPUT = 0,
+    parameter bit FORCE_MLAB = 1
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -37,7 +36,9 @@ module router #(
     output  logic   [DEST_WIDTH - 1 : 0]    dest_out    [NUM_OUTPUTS],
     output  logic                           is_tail_out [NUM_OUTPUTS],
     output  logic                           send_out    [NUM_INPUTS],
-    input   wire                            credit_in   [NUM_OUTPUTS]
+    input   wire                            credit_in   [NUM_OUTPUTS],
+
+    input   bit                             DISABLE_TURNS [NUM_INPUTS][NUM_OUTPUTS]
 );
     /**************************************************************************/
     /****************************** Declarations ******************************/
@@ -192,8 +193,8 @@ module router #(
         end
         for (int i = 0; i < NUM_INPUTS; i++) begin
             request[route_table_out[i]][i] = flit_rc_reg_valid[i];
-            if (DISABLE_SELFLOOP == 1) begin
-                request[i][i] = 1'b0;
+            for (int j = 0; j < NUM_OUTPUTS; j++) begin
+                request[j][i] = request[j][i] & ~DISABLE_TURNS[i][j];
             end
         end
     end
@@ -209,9 +210,9 @@ module router #(
         for (int i = 0; i < NUM_OUTPUTS; i++) begin
             grant_mask[i] = grant[i];
         end
-        if (DISABLE_SELFLOOP == 1) begin
-            for (int i = 0; i < NUM_INPUTS; i++) begin
-                grant_mask[i][i] = 1'b0;
+        for (int i = 0; i < NUM_INPUTS; i++) begin
+            for (int j = 0; j < NUM_OUTPUTS; j++) begin
+                grant_mask[j][i] = grant_mask[j][i] & ~DISABLE_TURNS[i][j];
             end
         end
     end
@@ -494,8 +495,7 @@ module router #(
     crossbar_onehot #(
         .DATA_WIDTH         (FLIT_WIDTH + DEST_WIDTH + 1),
         .NUM_INPUTS         (NUM_INPUTS),
-        .NUM_OUTPUTS        (NUM_OUTPUTS),
-        .DISABLE_SELFLOOP   (DISABLE_SELFLOOP))
+        .NUM_OUTPUTS        (NUM_OUTPUTS))
     crossbar_inst (
         .data_in     (flit_sa_reg),
         .valid_in    (flit_sa_reg_valid),
@@ -623,7 +623,6 @@ module crossbar_onehot #(
     parameter DATA_WIDTH = 32,
     parameter NUM_INPUTS = 2,
     parameter NUM_OUTPUTS = 2,
-    parameter DISABLE_SELFLOOP = 0,
     parameter MODE = "ONEHOT"       // BINARY, ONEHOT, EXPLICIT (supports upto 5x5)
 ) (
     input   wire    [DATA_WIDTH - 1 : 0]    data_in     [NUM_INPUTS],
@@ -647,7 +646,7 @@ module crossbar_onehot #(
                     .binary (select_binary[i])
                 );
 
-                assign data_out[i] = ((select[i] == '0) || ((DISABLE_SELFLOOP == 1) && (select_binary[i] == i))) ? 'x : data_in[select_binary[i]];
+                assign data_out[i] = ((select[i] == '0) || data_in[select_binary[i]]);
                 assign valid_out[i] = (select[i] == '0) ? 1'b0 : valid_in[select_binary[i]];
             end
         end else if (MODE == "ONEHOT") begin
@@ -656,7 +655,7 @@ module crossbar_onehot #(
                     data_out[i] = '0;
                     valid_out[i] = '0;
                     for (int j = 0; j < NUM_INPUTS; j++) begin
-                        if (((DISABLE_SELFLOOP == 0) || (i != j)) && select[i][j]) begin
+                        if (select[i][j]) begin
                             data_out[i] |= data_in[j];
                             valid_out[i] |= valid_in[j];
                         end
@@ -687,34 +686,24 @@ module crossbar_onehot #(
                             valid_out[i] = '0;
                         end
                         5'b00001: begin
-                            if ((i != 0) || (DISABLE_SELFLOOP == 0)) begin
-                                data_out[i] = data_in_expanded[0];
-                                valid_out[i] = valid_in_expanded[0];
-                            end
+                            data_out[i] = data_in_expanded[0];
+                            valid_out[i] = valid_in_expanded[0];
                         end
                         5'b00010: begin
-                            if ((i != 1) || (DISABLE_SELFLOOP == 0)) begin
-                                data_out[i] = data_in_expanded[1];
-                                valid_out[i] = valid_in_expanded[1];
-                            end
+                            data_out[i] = data_in_expanded[1];
+                            valid_out[i] = valid_in_expanded[1];
                         end
                         5'b00100: begin
-                            if ((i != 2) || (DISABLE_SELFLOOP == 0)) begin
-                                data_out[i] = data_in_expanded[2];
-                                valid_out[i] = valid_in_expanded[2];
-                            end
+                            data_out[i] = data_in_expanded[2];
+                            valid_out[i] = valid_in_expanded[2];
                         end
                         5'b01000: begin
-                            if ((i != 3) || (DISABLE_SELFLOOP == 0)) begin
-                                data_out[i] = data_in_expanded[3];
-                                valid_out[i] = valid_in_expanded[3];
-                            end
+                            data_out[i] = data_in_expanded[3];
+                            valid_out[i] = valid_in_expanded[3];
                         end
                         5'b10000: begin
-                            if ((i != 4) || (DISABLE_SELFLOOP == 0)) begin
-                                data_out[i] = data_in_expanded[4];
-                                valid_out[i] = valid_in_expanded[4];
-                            end
+                            data_out[i] = data_in_expanded[4];
+                            valid_out[i] = valid_in_expanded[4];
                         end
                         default: begin
                             data_out[i] = 'x;
@@ -734,12 +723,12 @@ module rc_pipeline #(
     parameter DEST_WIDTH = 4,
     parameter NUM_OUTPUTS = 2,
     parameter FLIT_BUFFER_DEPTH = 2,
-    parameter ENABLE = 1
+    parameter bit ENABLE = 1
 ) (
     input wire clk,
     input wire rst_n,
 
-    input   wire    [DATA_WIDTH - 1 : 0]                    data_in,
+    // input   wire    [DATA_WIDTH - 1 : 0]                    data_in,
     input   wire    [DEST_WIDTH - 1 : 0]                    dest_in,
     input   wire                                            is_tail_in,
     input   wire    [$clog2(NUM_OUTPUTS) - 1 : 0]           route_in,
@@ -747,7 +736,7 @@ module rc_pipeline #(
     input   wire                                            valid_in,
     output  logic                                           enable_out,
 
-    output  logic   [DATA_WIDTH - 1 : 0]                    data_out,
+    // output  logic   [DATA_WIDTH - 1 : 0]                    data_out,
     output  logic   [DEST_WIDTH - 1 : 0]                    dest_out,
     output  logic                                           is_tail_out,
     output  logic   [$clog2(NUM_OUTPUTS) - 1 : 0]           route_out,
@@ -767,7 +756,7 @@ module rc_pipeline #(
                 end
 
                 if (~valid_out | enable_in) begin
-                    data_out <= data_in;
+                    // data_out <= data_in;
                     dest_out <= dest_in;
                     is_tail_out <= is_tail_in;
                     route_out <= route_in;
@@ -778,7 +767,7 @@ module rc_pipeline #(
             end
             assign enable_out = enable_in | ~valid_out;
         end else if (ENABLE == 0) begin
-            assign data_out = data_in;
+            // assign data_out = data_in;
             assign dest_out = dest_in;
             assign is_tail_out = is_tail_in;
             assign route_out = route_in;
@@ -798,21 +787,21 @@ module sa_pipeline #(
     parameter DEST_WIDTH = 4,
     parameter NUM_OUTPUTS = 2,
     parameter FLIT_BUFFER_DEPTH = 2,
-    parameter ENABLE = 1
+    parameter bit ENABLE = 1
 ) (
     input   wire    clk,
     input   wire    rst_n,
 
     input   wire                                            grant,
 
-    input   wire    [DATA_WIDTH - 1 : 0]                    data_in,
+    // input   wire    [DATA_WIDTH - 1 : 0]                    data_in,
     input   wire    [DEST_WIDTH - 1 : 0]                    dest_in,
     input   wire                                            is_tail_in,
     input   wire    [NUM_OUTPUTS - 1 : 0]                   grant_in,
     input   wire    [$clog2(NUM_OUTPUTS) - 1 : 0]           route_in,
     input   wire                                            valid_in,
 
-    output  logic   [DATA_WIDTH - 1 : 0]                    data_out,
+    // output  logic   [DATA_WIDTH - 1 : 0]                    data_out,
     output  logic   [DEST_WIDTH - 1 : 0]                    dest_out,
     output  logic                                           is_tail_out,
     output  logic   [NUM_OUTPUTS - 1 : 0]                   grant_out,
@@ -834,7 +823,7 @@ module sa_pipeline #(
                 end
 
                 if (enable_in) begin
-                    data_out <= data_in;
+                    // data_out <= data_in;
                     dest_out <= dest_in;
                     is_tail_out <= is_tail_in;
                     grant_reg <= grant_in;
@@ -843,7 +832,7 @@ module sa_pipeline #(
             end
             assign grant_out = valid_out ? grant_reg : '0;
         end else if (ENABLE == 0) begin
-            assign data_out = data_in;
+            // assign data_out = data_in;
             assign dest_out = dest_in;
             assign is_tail_out = is_tail_in;
             assign grant_out = grant_in;

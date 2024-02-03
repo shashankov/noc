@@ -31,11 +31,13 @@ module axis_directional_torus #(
 
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/dtorus_4x4/",
+    parameter bit DISABLE_SELFLOOP = 1,
+    parameter OPTIMIZE_FOR_ROUTING = "XY",
 
-    parameter ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
-    parameter ROUTER_PIPELINE_ARBITER = 0,
-    parameter ROUTER_PIPELINE_OUTPUT = 1,
-    parameter ROUTER_FORCE_MLAB = 0
+    parameter bit ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
+    parameter bit ROUTER_PIPELINE_ARBITER = 0,
+    parameter bit ROUTER_PIPELINE_OUTPUT = 1,
+    parameter bit ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk_noc,
     input   wire    clk_usr,
@@ -174,6 +176,8 @@ module axis_directional_torus #(
         .FLIT_WIDTH                     (FLIT_WIDTH),
         .FLIT_BUFFER_DEPTH              (FLIT_BUFFER_DEPTH),
         .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
+        .DISABLE_SELFLOOP               (DISABLE_SELFLOOP),
+        .OPTIMIZE_FOR_ROUTING           (OPTIMIZE_FOR_ROUTING),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (ROUTER_PIPELINE_ROUTE_COMPUTE),
         .ROUTER_PIPELINE_ARBITER        (ROUTER_PIPELINE_ARBITER),
         .ROUTER_PIPELINE_OUTPUT         (ROUTER_PIPELINE_OUTPUT),

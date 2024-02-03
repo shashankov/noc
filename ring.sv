@@ -14,10 +14,11 @@
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/ring_4/",
-    parameter ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
-    parameter ROUTER_PIPELINE_ARBITER = 0,
-    parameter ROUTER_PIPELINE_OUTPUT = 0,
-    parameter ROUTER_FORCE_MLAB = 0
+    parameter bit DISABLE_SELFLOOP = 1,
+    parameter bit ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
+    parameter bit ROUTER_PIPELINE_ARBITER = 0,
+    parameter bit ROUTER_PIPELINE_OUTPUT = 0,
+    parameter bit ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -104,10 +105,21 @@
 
     // Generate routers
     generate begin: router_gen
-        genvar i, j;
+        genvar i, j, k;
         for (i = 0; i < NUM_ROUTERS; i = i + 1) begin: for_routers
             // Generate routing table file name
             localparam string routing_table = $sformatf("%s%0d.hex", ROUTING_TABLE_PREFIX, i);
+
+            bit DISABLE_TURNS[2][2];
+            for (j = 0; j < 2; j = j + 1) begin
+                for (k = 0; k < 2; k = k + 1) begin
+                    if ((DISABLE_SELFLOOP == 1) && (j == 0) && (k == 0)) begin
+                        assign DISABLE_TURNS[j][k] = 1;
+                    end else begin
+                        assign DISABLE_TURNS[j][k] = 0;
+                    end
+                end
+            end
 
             // Instantiate router
             router #(
@@ -121,7 +133,6 @@
                 .PIPELINE_ROUTE_COMPUTE (ROUTER_PIPELINE_ROUTE_COMPUTE),
                 .PIPELINE_ARBITER       (ROUTER_PIPELINE_ARBITER),
                 .PIPELINE_OUTPUT        (ROUTER_PIPELINE_OUTPUT),
-                .DISABLE_SELFLOOP       (0),
                 .FORCE_MLAB             (ROUTER_FORCE_MLAB)
             ) router_inst (
                 .clk            (clk),
@@ -137,7 +148,9 @@
                 .dest_out       (   dest_router_out[i]),
                 .is_tail_out    (is_tail_router_out[i]),
                 .send_out       (   send_router_out[i]),
-                .credit_in      ( credit_router_in [i])
+                .credit_in      ( credit_router_in [i]),
+
+                .DISABLE_TURNS  (DISABLE_TURNS)
             );
         end
     end

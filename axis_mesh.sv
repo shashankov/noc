@@ -26,16 +26,17 @@ module axis_mesh #(
     parameter SERDES_IN_BUFFER_DEPTH = 2,
     parameter SERDES_OUT_BUFFER_DEPTH = 2,
     parameter SERDES_EXTRA_SYNC_STAGES = 0,
-    parameter SERDES_FORCE_MLAB = 0,
+    parameter bit SERDES_FORCE_MLAB = 0,
 
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/",
+    parameter OPTIMIZE_FOR_ROUTING = "XY",
+    parameter DISABLE_SELFLOOP = 1,
 
-    parameter ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
-    parameter ROUTER_PIPELINE_ARBITER = 0,
-    parameter ROUTER_PIPELINE_OUTPUT = 1,
-    parameter ROUTER_DISABLE_SELFLOOP = 1,
-    parameter ROUTER_FORCE_MLAB = 0
+    parameter bit ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
+    parameter bit ROUTER_PIPELINE_ARBITER = 0,
+    parameter bit ROUTER_PIPELINE_OUTPUT = 1,
+    parameter bit ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk_noc,
     input   wire    clk_usr,
@@ -172,11 +173,12 @@ module axis_mesh #(
         .DEST_WIDTH                     (DEST_WIDTH),
         .FLIT_WIDTH                     (FLIT_WIDTH),
         .FLIT_BUFFER_DEPTH              (FLIT_BUFFER_DEPTH),
+        .OPTIMIZE_FOR_ROUTING           (OPTIMIZE_FOR_ROUTING),
+        .DISABLE_SELFLOOP               (DISABLE_SELFLOOP),
         .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (ROUTER_PIPELINE_ROUTE_COMPUTE),
         .ROUTER_PIPELINE_ARBITER        (ROUTER_PIPELINE_ARBITER),
         .ROUTER_PIPELINE_OUTPUT         (ROUTER_PIPELINE_OUTPUT),
-        .ROUTER_DISABLE_SELFLOOP        (ROUTER_DISABLE_SELFLOOP),
         .ROUTER_FORCE_MLAB              (ROUTER_FORCE_MLAB)
     ) noc (
         .clk            (clk_noc),

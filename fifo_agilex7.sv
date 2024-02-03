@@ -19,7 +19,7 @@ module  fifo_agilex7 #(
     parameter DEPTH = 4,
     parameter WIDTH = 32,
     parameter SHOWAHEAD = "OFF",
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     clock,
     data,
