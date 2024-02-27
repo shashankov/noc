@@ -23,6 +23,7 @@ Most are a subset of the [Router Parameters](#router-parameters) but the mapping
 `routing_tables/` contains scripts to generate routing tables based on X-Y dimension ordered routing for mesh and shortest-path routing for Double-Ring and Ring networks.
 
 Usage:
+- Router: `./gen_router_table.py <num_inputs> <num_outputs> <file_prefix>`
 - Mesh: `./gen_mesh_table.py <num_rows> <num_cols> <file_prefix>`
 - Double Ring: `./gen_double_ring_table.py <num_routers> <file_prefix>`
 - Ring: `./gen_ring_table.py <num_routers> <file_prefix>`

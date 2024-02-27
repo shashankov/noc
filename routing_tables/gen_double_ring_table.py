@@ -23,6 +23,11 @@ if __name__ == "__main__":
     num_routers = int(sys.argv[1])
     table_prefix = sys.argv[2]
 
+    # Create folder if it doesn't exist
+    import os
+    if not os.path.exists(table_prefix):
+        os.makedirs(table_prefix)
+
     for i in range(num_routers):
         table = generate_table(num_routers, i)
         table_file = open("%s%d.hex" % (table_prefix, i), "w")

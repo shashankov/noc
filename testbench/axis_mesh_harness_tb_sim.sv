@@ -1,16 +1,17 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ns
 
 module axis_mesh_harness_tb_sim();
-    localparam NUM_ROWS = 2;
-    localparam NUM_COLS = 2;
+    localparam NUM_ROWS = 4;
+    localparam NUM_COLS = 4;
+    localparam ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/";
     localparam DATA_WIDTH = 64;
-    localparam TDEST_WIDTH = 2;
-    localparam TID_WIDTH = 2;
+    localparam TDEST_WIDTH = $clog2(NUM_ROWS * NUM_COLS);
+    localparam TID_WIDTH = $clog2(NUM_ROWS * NUM_COLS);
     localparam COUNT_WIDTH = 32;
     localparam PACKET_COUNT = 1 << 14;
 
     localparam SERIALIZATION_FACTOR = 1;
-    localparam CLKCROSS_FACTOR = 4;
+    localparam CLKCROSS_FACTOR = 1;
 
     localparam SINGLE_CLOCK = ((CLKCROSS_FACTOR == 1) ? 1 : 0);
 
@@ -136,7 +137,13 @@ module axis_mesh_harness_tb_sim();
                     end
                 end
                 if (all_done && (sum_recv_packets == sum_sent_packets)) begin
-                    $display("All done! Errors: %d, %d, %d, %d", error[0][0], error[0][1], error[1][0], error[1][1]);
+                    $write("All done! Errors: ");
+                    for (int i = 0; i < NUM_ROWS; i = i + 1) begin
+                        for (int j = 0; j < NUM_COLS; j = j + 1) begin
+                            $write("(%1d, %1d): %1d ", i, j, error[i][j]);
+                        end
+                    end
+                    $write("\n");
                     $fflush;
                     break;
                 end else if (ticks >= (1 << 31)) begin
@@ -223,6 +230,7 @@ module axis_mesh_harness_tb_sim();
         .NUM_COLS                       (NUM_COLS),
         .PIPELINE_LINKS                 (0),
 
+        .TID_WIDTH                      (TID_WIDTH),
         .TDEST_WIDTH                    (TDEST_WIDTH),
         .TDATA_WIDTH                    (DATA_WIDTH),
         .SERIALIZATION_FACTOR           (SERIALIZATION_FACTOR),
@@ -233,11 +241,11 @@ module axis_mesh_harness_tb_sim();
         .SERDES_EXTRA_SYNC_STAGES       (0),
 
         .FLIT_BUFFER_DEPTH              (8),
-        .ROUTING_TABLE_PREFIX           ("routing_tables/mesh_2x2/"),
+        .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (1),
         .ROUTER_PIPELINE_ARBITER        (0),
         .ROUTER_PIPELINE_OUTPUT         (1),
-        .DISABLE_SELFLOOP        (0),
+        .DISABLE_SELFLOOP               (0),
         .ROUTER_FORCE_MLAB              (0)
     ) dut (
         .clk_noc(clk_noc),

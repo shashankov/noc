@@ -35,7 +35,7 @@ module router #(
     output  logic   [FLIT_WIDTH - 1 : 0]    data_out    [NUM_OUTPUTS],
     output  logic   [DEST_WIDTH - 1 : 0]    dest_out    [NUM_OUTPUTS],
     output  logic                           is_tail_out [NUM_OUTPUTS],
-    output  logic                           send_out    [NUM_INPUTS],
+    output  logic                           send_out    [NUM_OUTPUTS],
     input   wire                            credit_in   [NUM_OUTPUTS],
 
     input   bit                             DISABLE_TURNS [NUM_INPUTS][NUM_OUTPUTS]
@@ -130,7 +130,7 @@ module router #(
 
     // Input generate
     generate begin: input_assign_gen
-        genvar i;
+        genvar i, j;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             // Read flit buffer when the pipeline is free
             assign tail_buffer_rdreq[i] = ~tail_buffer_empty[i] & (rc_pipeline_enable[i] | ~tail_buffer_valid[i]);
@@ -144,13 +144,15 @@ module router #(
             // Index into the routing table using the destination
             assign route_table_select[i] = dest_buffer_out[i][$clog2(NOC_NUM_ENDPOINTS) - 1 : 0];
 
+            // Generate pipeline enable based on credits
+            assign sa_pipeline_enable[i] = (rc_reg_credit_proxy[i] > (PIPELINE_ARBITER ? 1 : 0)) & grant_input[i];
+        end
+
+        for (i = 0; i < NUM_OUTPUTS; i++) begin: for_outputs
             // Unpack the crossbar output
             assign {data_out[i], dest_out[i], is_tail_out[i]} = (PIPELINE_OUTPUT == 0) ?
                 {data_out_flit[i], data_out_dest[i], data_out_is_tail[i]} :
                 {data_out_reg_flit[i], data_out_reg_dest[i], data_out_reg_is_tail[i]};
-
-            // Generate pipeline enable based on credits
-            assign sa_pipeline_enable[i] = (rc_reg_credit_proxy[i] > (PIPELINE_ARBITER ? 1 : 0)) & grant_input[i];
         end
     end
     endgenerate
@@ -448,7 +450,7 @@ module router #(
 
     generate begin: arbiter_pipeline_gen
         genvar i;
-        for (i = 0; i < NUM_INPUTS; i++) begin: for_iputs
+        for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
             sa_pipeline #(
                 .DATA_WIDTH         (FLIT_WIDTH),
                 .DEST_WIDTH         (DEST_WIDTH),

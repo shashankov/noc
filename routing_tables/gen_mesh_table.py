@@ -51,6 +51,11 @@ if __name__ == "__main__":
     table_prefix = sys.argv[3]
     num_routers = num_rows * num_cols
 
+    # Create folder if it doesn't exist
+    import os
+    if not os.path.exists(table_prefix):
+        os.makedirs(table_prefix)
+
     for i in range(num_rows):
         for j in range(num_cols):
             table = generate_table(num_rows, num_cols, i, j)
