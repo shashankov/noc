@@ -20,7 +20,8 @@ Most are a subset of the [Router Parameters](#router-parameters) but the mapping
 
 ### Routing Table Generation
 
-`routing_tables/` contains scripts to generate routing tables based on X-Y dimension ordered routing for mesh and shortest-path routing for Double-Ring and Ring networks.
+`routing_tables/` contains scripts to generate routing tables based on X-Y dimension ordered routing for mesh, torus and directional torus and shortest-path routing for Double-Ring and Ring networks.
+Note: For torus, ties occur when the node can be reached from either direction. Ties are broken by alternating for each node which side is chosen evening out the load on each link.
 
 Usage:
 - Router: `./gen_router_table.py <num_inputs> <num_outputs> <file_prefix>`
@@ -28,6 +29,7 @@ Usage:
 - Double Ring: `./gen_double_ring_table.py <num_routers> <file_prefix>`
 - Ring: `./gen_ring_table.py <num_routers> <file_prefix>`
 - Directional Torus: `./gen_dtorus_table.py <num_rows> <num_cols> <file_prefix>`
+- Torus: `./gen_torus_table.py <num_rows> <num_cols> <file_prefix>`
 
 ### NoC Topologies
 
@@ -42,6 +44,21 @@ Describes a Mesh NoC using the [router interface](#router-interface) for IO pair
 | NUM_ROWS | Number of rows in the mesh |
 | NUM_COLS | Number of columns in the mesh |
 | PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
+| OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
+
+#### Torus NoC (torus.sv)
+
+Describes a Torus NoC using the [router interface](#router-interface) for IO pairs.
+
+##### Directional Torus Specific Parameters
+
+| Parameter | Description |
+| --------: | :---------- |
+| NUM_ROWS | Number of rows in the mesh |
+| NUM_COLS | Number of columns in the mesh |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| EXTRA_PIPELINE_LONG_LINKS | Number of **extra** pipeline registers to add to the links that wrap around (adds to PIPELINE_LINKS) |
 | ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
 | OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
 
