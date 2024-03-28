@@ -20,7 +20,7 @@ module  dcfifo_agilex7 #(
     parameter DEPTH = 8,
     parameter EXTRA_SYNC_STAGES = 0,
     parameter SHOWAHEAD = "OFF",
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     aclr,
     data,

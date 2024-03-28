@@ -13,11 +13,11 @@ module axis_serializer_shim_in #(
     parameter TDATA_WIDTH = 512,
     parameter SERIALIZATION_FACTOR = 1,
     parameter CLKCROSS_FACTOR = 1,
-    parameter SINGLE_CLOCK = 0,
+    parameter bit SINGLE_CLOCK = 0,
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -141,11 +141,11 @@ module axis_deserializer_shim_out #(
     parameter TDATA_WIDTH = 512,
     parameter SERIALIZATION_FACTOR = 1,
     parameter CLKCROSS_FACTOR = 1,
-    parameter SINGLE_CLOCK = 0,
+    parameter bit SINGLE_CLOCK = 0,
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -270,7 +270,7 @@ module axis_clkcross_shim_in #(
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -411,7 +411,7 @@ module axis_clkcross_shim_out #(
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter EXTRA_SYNC_STAGES = 0,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk_usr,
     input   wire    clk_noc,
@@ -553,7 +553,7 @@ module axis_shim_in #(
     parameter TDATA_WIDTH = 512,
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -625,7 +625,7 @@ module axis_shim_out #(
     parameter TDATA_WIDTH = 512,
     parameter BUFFER_DEPTH = 4,
     parameter FLIT_BUFFER_DEPTH = 4,
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     input   wire    clk,
     input   wire    rst_n,
@@ -659,7 +659,7 @@ module axis_shim_out #(
 
     assign axis_tvalid = ~buffer_empty;
 
-    assign credit_out = ((credit_count < FLIT_BUFFER_DEPTH) || send_in) &
+    assign credit_out = ((credit_count < FLIT_BUFFER_DEPTH) || send_in) &&
                         ((credit_count < (BUFFER_DEPTH - buffer_usedw)) || (axis_tready & axis_tvalid));
 
     fifo_agilex7 #(

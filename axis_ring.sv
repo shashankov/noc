@@ -20,7 +20,7 @@
 
     parameter SERIALIZATION_FACTOR = 4,
     parameter CLKCROSS_FACTOR = 1,
-    parameter SINGLE_CLOCK = 0,
+    parameter bit SINGLE_CLOCK = 0,
     parameter SERDES_IN_BUFFER_DEPTH = 4,
     parameter SERDES_OUT_BUFFER_DEPTH = 4,
     parameter SERDES_EXTRA_SYNC_STAGES = 0,
@@ -28,11 +28,12 @@
 
     parameter FLIT_BUFFER_DEPTH = 4,
     parameter ROUTING_TABLE_PREFIX = "routing_tables/ring_4/",
+    parameter bit DISABLE_SELFLOOP = 1,
 
-    parameter ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
-    parameter ROUTER_PIPELINE_ARBITER = 0,
-    parameter ROUTER_PIPELINE_OUTPUT = 0,
-    parameter ROUTER_FORCE_MLAB = 0
+    parameter bit ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
+    parameter bit ROUTER_PIPELINE_ARBITER = 0,
+    parameter bit ROUTER_PIPELINE_OUTPUT = 0,
+    parameter bit ROUTER_FORCE_MLAB = 0
 ) (
     input   wire    clk_noc,
     input   wire    clk_usr,
@@ -166,6 +167,7 @@
         .FLIT_WIDTH                     (FLIT_WIDTH),
         .FLIT_BUFFER_DEPTH              (FLIT_BUFFER_DEPTH),
         .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
+        .DISABLE_SELFLOOP               (DISABLE_SELFLOOP),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (ROUTER_PIPELINE_ROUTE_COMPUTE),
         .ROUTER_PIPELINE_ARBITER        (ROUTER_PIPELINE_ARBITER),
         .ROUTER_PIPELINE_OUTPUT         (ROUTER_PIPELINE_OUTPUT),

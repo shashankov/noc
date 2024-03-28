@@ -43,13 +43,18 @@ def generate_table(num_rows, num_cols, row_id, col_id):
 
 if __name__ == "__main__":
     if (len(sys.argv) != 4):
-        print("Usage: ./gen_mesh_table.py <num_rows> <num_cols> <file_prefix>")
+        print("Usage: " + sys.argv[0] + " <num_rows> <num_cols> <file_prefix>")
         sys.exit(1)
 
     num_rows = int(sys.argv[1])
     num_cols = int(sys.argv[2])
     table_prefix = sys.argv[3]
     num_routers = num_rows * num_cols
+
+    # Create folder if it doesn't exist
+    import os
+    if not os.path.exists(table_prefix):
+        os.makedirs(table_prefix)
 
     for i in range(num_rows):
         for j in range(num_cols):

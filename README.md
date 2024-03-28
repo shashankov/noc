@@ -4,27 +4,32 @@ Author: Shashank Obla (sobla@andrew.cmu.edu)
 
 ## NoC
 ### Generic NoC Parameters
-These are a subset of the [Router Parameters](#router-parameters) but the mapping is provided below.
+Most are a subset of the [Router Parameters](#router-parameters) but the mapping is provided below.
 
 | Parameter | Description |
 | --------: | :---------- |
 | DEST_WIDTH | See DEST_WIDTH option in [Router Parameters](#router-parameters) |
 | FLIT_WIDTH | See FLIT_WIDTH option in [Router Parameters](#router-parameters) |
 | FLIT_BUFFER_DEPTH | See FLIT_BUFFER_DEPTH option in [Router Parameters](#router-parameters) |
+| ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables |
+| DISABLE_SELFLOOP | Disables path from input 0 to output 0 in the routers (Nodes connected to routers cannot send data to themselves) |
 | ROUTER_PIPELINE_ROUTE_COMPUTE | See PIPELINE_ROUTE_COMPUTE option in [Router Parameters](#router-parameters) |
 | ROUTER_PIPELINE_ARBITER | See PIPELINE_ARBITER option in [Router Parameters](#router-parameters) |
 | ROUTER_PIPELINE_OUTPUT | See PIPELINE_OUTPUT option in [Router Parameters](#router-parameters) |
-| ROUTER_DISABLE_SELFLOOP | See DISABLE_SELFLOOP option in [Router Parameters](#router-parameters) |
 | ROUTER_FORCE_MLAB | See FORCE_MLAB option in [Router Parameters](#router-parameters) |
 
 ### Routing Table Generation
 
-`routing_tables/` contains scripts to generate routing tables based on X-Y dimension ordered routing for mesh and shortest-path routing for Double-Ring and Ring networks.
+`routing_tables/` contains scripts to generate routing tables based on X-Y dimension ordered routing for mesh, torus and directional torus and shortest-path routing for Double-Ring and Ring networks.
+Note: For torus, ties occur when the node can be reached from either direction. Ties are broken by alternating for each node which side is chosen evening out the load on each link.
 
 Usage:
+- Router: `./gen_router_table.py <num_inputs> <num_outputs> <file_prefix>`
 - Mesh: `./gen_mesh_table.py <num_rows> <num_cols> <file_prefix>`
 - Double Ring: `./gen_double_ring_table.py <num_routers> <file_prefix>`
 - Ring: `./gen_ring_table.py <num_routers> <file_prefix>`
+- Directional Torus: `./gen_dtorus_table.py <num_rows> <num_cols> <file_prefix>`
+- Torus: `./gen_torus_table.py <num_rows> <num_cols> <file_prefix>`
 
 ### NoC Topologies
 
@@ -40,13 +45,43 @@ Describes a Mesh NoC using the [router interface](#router-interface) for IO pair
 | NUM_COLS | Number of columns in the mesh |
 | PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
 | ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
+| OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
+
+#### Torus NoC (torus.sv)
+
+Describes a Torus NoC using the [router interface](#router-interface) for IO pairs.
+
+##### Directional Torus Specific Parameters
+
+| Parameter | Description |
+| --------: | :---------- |
+| NUM_ROWS | Number of rows in the mesh |
+| NUM_COLS | Number of columns in the mesh |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| EXTRA_PIPELINE_LONG_LINKS | Number of **extra** pipeline registers to add to the links that wrap around (adds to PIPELINE_LINKS) |
+| ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
+| OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
+
+#### Directional Torus NoC (directional_torus.sv)
+
+Describes a Directional Torus NoC using the [router interface](#router-interface) for IO pairs. Without loss of generality, links go W -> E and N -> S and wrap around at the edges.
+
+##### Directional Torus Specific Parameters
+
+| Parameter | Description |
+| --------: | :---------- |
+| NUM_ROWS | Number of rows in the mesh |
+| NUM_COLS | Number of columns in the mesh |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| EXTRA_PIPELINE_LONG_LINKS | Number of **extra** pipeline registers to add to the links that wrap around (adds to PIPELINE_LINKS) |
+| ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
+| OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
 
 #### (Double-)Ring NoC ((double_)ring.sv)
 
 Describes a (double-)ring NoC using the [router interface](#router-interface) for IO pairs.
 
 ##### (Double-)Ring Specific Parameters
-Note: The ROUTER_DISABLE_SELFLOOP option is removed from the ring topology since it does not make sense without IO pairs as in a ring.
 
 | Parameter | Description |
 | --------: | :---------- |
@@ -75,6 +110,8 @@ Describes a parametrizable router featuring input-independent output-based routi
 |is_tail_out |O|If the flit is the tail flit|
 |send_out    |O|Push (Output must accept - credit-based flow control)|
 |credit_in   |I|Receive credits|
+|||
+|DISABLE_TURNS|I|Default set to 0, used to disable turns in the router crossbar|
 
 #### Router Parameters
 
@@ -90,7 +127,6 @@ Describes a parametrizable router featuring input-independent output-based routi
 | PIPELINE_ROUTE_COMPUTE | Splits route computation into a separate pipeline stage |
 | PIPELINE_ARBITER | Splits the abitration and switch traversal into separate pipeline stages |
 | PIPELINE_OUTPUT | Adds an extra pipeline stage at the output of the router |
-| DISABLE_SELFLOOP | Disables path from input i to output i, useful in a mesh NoC |
 | FORCE_MLAB | Forces the flit buffers to use MLABs (LUTRAM) instead of M20Ks (BRAM) (Advanced) |
 
 ## AXI-Stream NoC Wrapper
@@ -138,16 +174,19 @@ NoC Topology specific parameters are same as in the [NoC section](#noc) and not 
 | SERDES_EXTRA_SYNC_STAGES  | Asynchronous FIFO extra metastability synchronization stages (-2 disables synchronization and may be used for synchronized clocks) |
 | SERDES_FORCE_MLAB         | Forces the buffers in the serdes modules to use MLABs (LUTRAM) instead of M20Ks (BRAM) if possible (mixed-width dual-clock FIFO does not support this) |
 | | |
-| FLIT_BUFFER_DEPTH         | See [NoC parameters](#generic-noc-parameters)
-| ROUTING_TABLE_PREFIX      | See [NoC parameters](#generic-noc-parameters)
-| ROUTER_PIPELINE_OUTPUT    | See [NoC parameters](#generic-noc-parameters)
-| ROUTER_FORCE_MLAB         | See [NoC parameters](#generic-noc-parameters)
+| FLIT_BUFFER_DEPTH         | See [NoC parameters](#generic-noc-parameters) |
+| ROUTING_TABLE_PREFIX      | See [NoC parameters](#generic-noc-parameters) |
+| DISABLE_SELFLOOP          | See [NoC parameters](#generic-noc-parameters) |
+| ROUTER_PIPELINE_OUTPUT    | See [NoC parameters](#generic-noc-parameters) |
+| ROUTER_FORCE_MLAB         | See [NoC parameters](#generic-noc-parameters) |
 
 ### AXI-S Shims (axis_serdes_shims.sv)
 
 Contain modules `axis_serializer_shim_in` and `axis_deserializer_shim_out` which form the input and output shims respectively. Parameters are forwarded and can be seen in the top-level [AXI-S NoC parameters](#generic-parameters)
 
 ## Simulation
+
+Note: Testbenches are not maintained and may become obsolete due to new updates
 
 - `test_harness`: Contains traffic generator and checker for the NoC with AXI-Stream wrapper.
 - `testbench`: Contains testbench files for various components in the repository.

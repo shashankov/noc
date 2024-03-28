@@ -19,7 +19,7 @@ module  fifo_agilex7 #(
     parameter DEPTH = 4,
     parameter WIDTH = 32,
     parameter SHOWAHEAD = "OFF",
-    parameter FORCE_MLAB = 0
+    parameter bit FORCE_MLAB = 0
 ) (
     clock,
     data,
@@ -41,6 +41,7 @@ module  fifo_agilex7 #(
     output [WIDTH-1:0]  q;
     output [$clog2(DEPTH) - 1 : 0] usedw;
 
+`ifndef SIMULATION
     wire  sub_wire0;
     wire  sub_wire1;
     wire [WIDTH-1:0] sub_wire2;
@@ -75,5 +76,45 @@ module  fifo_agilex7 #(
         scfifo_component.overflow_checking  = "OFF",
         scfifo_component.underflow_checking  = "OFF",
         scfifo_component.use_eab  = "ON";
+`else
+    logic empty, full;
+    logic [WIDTH - 1 : 0] mem [DEPTH - 1 : 0];
+    logic [$clog2(DEPTH) - 1 : 0] front_index, back_index;
+
+    always @(posedge clock) begin
+        if (sclr == 1'b1) begin
+            front_index <= '0;
+            back_index <= '0;
+            empty <= 1'b1;
+            full <= 1'b0;
+        end else begin
+            if (wrreq == 1'b1) begin
+                mem[back_index] <= data;
+                back_index <= (back_index == (DEPTH - 1)) ? '0 : (back_index + 1);
+                empty <= 1'b0;
+                if (((back_index == (DEPTH - 1)) ? '0 : (back_index + 1)) == front_index) begin
+                    full <= 1'b1;
+                end
+                if (full == 1'b1) begin
+                    $warning("Overflow in FIFO");
+                end
+            end
+            if (rdreq == 1'b1) begin
+                front_index <= (front_index == (DEPTH - 1)) ? '0 : (front_index + 1);
+                full <= 1'b0;
+                if (((front_index == (DEPTH - 1)) ? '0 : (front_index + 1)) == back_index) begin
+                    empty <= 1'b1;
+                end
+                if (empty == 1'b1) begin
+                    $warning("Underflow in FIFO");
+                end
+            end
+        end
+    end
+
+    assign q = mem[(SHOWAHEAD == "ON") ? front_index : (front_index == '0 ? (DEPTH - 1) : (front_index - 1))];
+    assign usedw = (back_index > front_index) ? (back_index - front_index) : (DEPTH + back_index - front_index);
+
+`endif
 
 endmodule: fifo_agilex7

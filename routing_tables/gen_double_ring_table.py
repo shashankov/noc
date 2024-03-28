@@ -17,11 +17,16 @@ def generate_table(num_routers, router_id):
 
 if __name__ == "__main__":
     if (len(sys.argv) != 3):
-        print("Usage: ./gen_double_ring_table.py <num_routers> <file_prefix>")
+        print("Usage: " + sys.argv[0] + " <num_routers> <file_prefix>")
         sys.exit(1)
 
     num_routers = int(sys.argv[1])
     table_prefix = sys.argv[2]
+
+    # Create folder if it doesn't exist
+    import os
+    if not os.path.exists(table_prefix):
+        os.makedirs(table_prefix)
 
     for i in range(num_routers):
         table = generate_table(num_routers, i)

@@ -1,13 +1,14 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1ns
 
 module axis_mesh_harness_tb_sim();
-    localparam NUM_ROWS = 2;
-    localparam NUM_COLS = 2;
+    localparam NUM_ROWS = 4;
+    localparam NUM_COLS = 4;
+    localparam ROUTING_TABLE_PREFIX = "routing_tables/mesh_4x4/";
     localparam DATA_WIDTH = 64;
-    localparam TDEST_WIDTH = 2;
-    localparam TID_WIDTH = 2;
+    localparam TDEST_WIDTH = $clog2(NUM_ROWS * NUM_COLS);
+    localparam TID_WIDTH = $clog2(NUM_ROWS * NUM_COLS);
     localparam COUNT_WIDTH = 32;
-    localparam PACKET_COUNT = 1 << 16;
+    localparam PACKET_COUNT = 1 << 14;
 
     localparam SERIALIZATION_FACTOR = 1;
     localparam CLKCROSS_FACTOR = 1;
@@ -75,7 +76,7 @@ module axis_mesh_harness_tb_sim();
     end
 
     initial begin
-        clk_noc = 1'b1;
+        clk_noc = 1'b0;
         forever begin
             #NOC_CLK_SWITCH clk_noc = ~clk_noc;
         end
@@ -84,7 +85,8 @@ module axis_mesh_harness_tb_sim();
     logic all_done;
     logic [15 : 0] load;
     // real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.525, 0.55, 0.56, 0.57, 0.575, 0.58, 0.585, 0.59, 0.6};
-    real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.66, 0.67, 0.675, 0.68, 0.685, 0.69, 0.7};
+    // real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.66, 0.67, 0.675, 0.68, 0.685, 0.69, 0.7};
+    real sweep_load[] = {0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.68, 0.69, 0.7, 0.8};
     // real sweep_load[] = {0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01};
 
     initial begin
@@ -94,7 +96,7 @@ module axis_mesh_harness_tb_sim();
                 start[i][j] = 1'b0;
             end
         end
-        for (int load_idx = 0; load_idx < 14; load_idx = load_idx + 1) begin
+        for (int load_idx = 0; load_idx < 12; load_idx = load_idx + 1) begin
             load =  int'(((1 << 16) - 1) * sweep_load[load_idx]);
             @(negedge clk);
             $display("Load = %f", $itor(load) / $itor((1 << 16) - 1));
@@ -135,7 +137,14 @@ module axis_mesh_harness_tb_sim();
                     end
                 end
                 if (all_done && (sum_recv_packets == sum_sent_packets)) begin
-                    $display("All done! Errors: %d, %d, %d, %d", error[0][0], error[0][1], error[1][0], error[1][1]);
+                    $write("All done! Errors: ");
+                    for (int i = 0; i < NUM_ROWS; i = i + 1) begin
+                        for (int j = 0; j < NUM_COLS; j = j + 1) begin
+                            $write("(%1d, %1d): %1d ", i, j, error[i][j]);
+                        end
+                    end
+                    $write("\n");
+                    $fflush;
                     break;
                 end else if (ticks >= (1 << 31)) begin
                     $display("Timeout!");
@@ -221,6 +230,7 @@ module axis_mesh_harness_tb_sim();
         .NUM_COLS                       (NUM_COLS),
         .PIPELINE_LINKS                 (0),
 
+        .TID_WIDTH                      (TID_WIDTH),
         .TDEST_WIDTH                    (TDEST_WIDTH),
         .TDATA_WIDTH                    (DATA_WIDTH),
         .SERIALIZATION_FACTOR           (SERIALIZATION_FACTOR),
@@ -231,11 +241,11 @@ module axis_mesh_harness_tb_sim();
         .SERDES_EXTRA_SYNC_STAGES       (0),
 
         .FLIT_BUFFER_DEPTH              (8),
-        .ROUTING_TABLE_PREFIX           ("routing_tables/mesh_2x2/"),
+        .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (1),
         .ROUTER_PIPELINE_ARBITER        (0),
         .ROUTER_PIPELINE_OUTPUT         (1),
-        .ROUTER_DISABLE_SELFLOOP        (0),
+        .DISABLE_SELFLOOP               (0),
         .ROUTER_FORCE_MLAB              (0)
     ) dut (
         .clk_noc(clk_noc),

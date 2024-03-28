@@ -36,7 +36,7 @@ module axis_checker #(
         axis_in_tready = $urandom(TDEST);
         forever begin
             @(negedge clk);
-            axis_in_tready = ($urandom_range(100) < 100);
+            axis_in_tready = ($urandom_range(100) < 101);
         end
     end
     // assign axis_in_tready = 1'b1;

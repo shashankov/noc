@@ -186,7 +186,7 @@ module axis_mesh_harness_tb();
         .FLIT_BUFFER_DEPTH          (4),
         .ROUTING_TABLE_PREFIX       ("routing_tables/mesh_2x2/"),
         .ROUTER_PIPELINE_OUTPUT     (1),
-        .ROUTER_DISABLE_SELFLOOP    (0),
+        .DISABLE_SELFLOOP    (0),
         .ROUTER_FORCE_MLAB          (0)
     ) dut (
         .clk_noc(clk_noc),
