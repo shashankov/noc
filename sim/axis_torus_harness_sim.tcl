@@ -29,7 +29,7 @@ source $QSYS_SIMDIR/mentor/msim_setup.tcl
 # the top level. (These are all the files required for simulation other
 # than the files compiled by the Quartus-generated IP simulation script)
 #
-vlog $QSYS_SIMDIR/../testbench/axis_torus_harness_tb_sim.sv $QSYS_SIMDIR/../*sv $QSYS_SIMDIR/../test_harness/*sv
+vlog +define+SIMULATION $QSYS_SIMDIR/../testbench/axis_torus_harness_tb_sim.sv $QSYS_SIMDIR/../*sv $QSYS_SIMDIR/../test_harness/*sv
 #
 # Set the top-level simulation or testbench module/entity name, which is
 # used by the elab command to elaborate the top level.

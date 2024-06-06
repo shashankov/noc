@@ -79,20 +79,19 @@ module  fifo_agilex7 #(
 `else
     logic empty, full;
     logic [WIDTH - 1 : 0] mem [DEPTH - 1 : 0];
-    logic [$clog2(DEPTH) - 1 : 0] front_index, back_index;
+    logic [$clog2(DEPTH) - 1 : 0] front_index, back_index, front_index_next, back_index_next;
+
+    assign front_index_next = (rdreq == 1'b1) ? ((front_index == (DEPTH - 1)) ? '0 : (front_index + 1)) : front_index;
+    assign back_index_next = (wrreq == 1'b1) ? ((back_index == (DEPTH - 1)) ? '0 : (back_index + 1)) : back_index;
 
     always @(posedge clock) begin
         if (sclr == 1'b1) begin
             front_index <= '0;
             back_index <= '0;
-            empty <= 1'b1;
-            full <= 1'b0;
-        end else begin
             if (wrreq == 1'b1) begin
                 mem[back_index] <= data;
-                back_index <= (back_index == (DEPTH - 1)) ? '0 : (back_index + 1);
                 empty <= 1'b0;
-                if (((back_index == (DEPTH - 1)) ? '0 : (back_index + 1)) == front_index) begin
+                if (back_index_next == front_index_next) begin
                     full <= 1'b1;
                 end
                 if (full == 1'b1) begin
@@ -100,9 +99,8 @@ module  fifo_agilex7 #(
                 end
             end
             if (rdreq == 1'b1) begin
-                front_index <= (front_index == (DEPTH - 1)) ? '0 : (front_index + 1);
                 full <= 1'b0;
-                if (((front_index == (DEPTH - 1)) ? '0 : (front_index + 1)) == back_index) begin
+                if (front_index_next == back_index_next) begin
                     empty <= 1'b1;
                 end
                 if (empty == 1'b1) begin
