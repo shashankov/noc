@@ -9,11 +9,12 @@
  */
 
  module ring #(
-    parameter NUM_ROUTERS = 4,
+    parameter NUM_ROUTERS = 3,
     parameter DEST_WIDTH = 4,
     parameter FLIT_WIDTH = 256,
     parameter FLIT_BUFFER_DEPTH = 2,
-    parameter ROUTING_TABLE_PREFIX = "routing_tables/ring_4/",
+    parameter PIPELINE_LINKS = 0,
+    parameter ROUTING_TABLE_PREFIX = "routing_tables/ring_3/",
     parameter bit DISABLE_SELFLOOP = 1,
     parameter bit ROUTER_PIPELINE_ROUTE_COMPUTE = 1,
     parameter bit ROUTER_PIPELINE_ARBITER = 0,
@@ -92,13 +93,13 @@
                    dest_router_in   [i][1] =    dest  [i - 1];
                 is_tail_router_in   [i][1] = is_tail  [i - 1];
                    send_router_in   [i][1] =    send  [i - 1];
-                 credit_router_in   [i][1] =  credit  [i - 1];
+                 credit_router_in   [i - 1][1] =  credit  [i];
             end else begin  // loop around
                    data_router_in   [i][1] =    data  [NUM_ROUTERS - 1];
                    dest_router_in   [i][1] =    dest  [NUM_ROUTERS - 1];
                 is_tail_router_in   [i][1] = is_tail  [NUM_ROUTERS - 1];
                    send_router_in   [i][1] =    send  [NUM_ROUTERS - 1];
-                 credit_router_in   [i][1] =  credit  [NUM_ROUTERS - 1];
+                 credit_router_in   [NUM_ROUTERS - 1][1] =  credit  [0];
             end
         end
     end

@@ -13,6 +13,7 @@
     parameter RESET_NUM_OUTPUT_REGISTERS = 1,
 
     parameter NUM_ROUTERS = 4,
+    parameter PIPELINE_LINKS = 0,
 
     parameter TID_WIDTH = 2,
     parameter TDEST_WIDTH = 4,
@@ -166,6 +167,7 @@
         .DEST_WIDTH                     (DEST_WIDTH),
         .FLIT_WIDTH                     (FLIT_WIDTH),
         .FLIT_BUFFER_DEPTH              (FLIT_BUFFER_DEPTH),
+        .PIPELINE_LINKS                 (PIPELINE_LINKS),
         .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
         .DISABLE_SELFLOOP               (DISABLE_SELFLOOP),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (ROUTER_PIPELINE_ROUTE_COMPUTE),
