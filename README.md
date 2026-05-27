@@ -4,7 +4,67 @@ Author: Shashank Obla (https://www.andrew.cmu.edu/user/sobla)
 
 ReCONNECT is a highly-parametrizable, high-performance soft network-on-chip designed to be customizable to the needs of the application while being resource-minimal and tuned for modern FPGA architectures. Written directly in SystemVerilog (RTL), the NoC is specially optimized for high-frequency operations on Intel FPGA architectures (such as Intel Agilex 7) and operates at frequencies exceeding 500 MHz. Find more about it here: [https://www.andrew.cmu.edu/user/sobla/projects/noc/](https://www.andrew.cmu.edu/user/sobla/projects/noc/)
 
-## NoC
+
+## Getting Started with Simulation
+
+Simulations are configured and executed using the Makefile located in the `test` directory.
+
+### Quick Start
+To run the default simulation, install Verilator 5.0+ and run the following command:
+
+```bash
+cd test
+make run
+```
+
+### Simulation Environments
+
+We support both **Verilator** and **ModelSim** simulation environments.
+
+#### Verilator
+*Note: Requires **Verilator 5.0 or later** (tested with version 5.048).*
+
+Verilator simulations are compiled with behavioral FIFO models (`SIMULATION=1`):
+```bash
+make verilator [OPTIONS...]
+```
+
+To point to a local installation of Verilator instead of the global one, override the `VERILATOR` path on the command line. You may also need to define the `VERILATOR_ROOT` environment variable pointing to the root of your local installation so that the compiler can locate Verilator's runtime headers and libraries:
+```bash
+export VERILATOR_ROOT=/path/to/local/verilator
+make verilator VERILATOR=$VERILATOR_ROOT/bin/verilator
+```
+
+#### ModelSim
+ModelSim supports both behavioral simulation and actual Intel FPGA IPs/libraries:
+```bash
+make modelsim [OPTIONS...]
+```
+
+### Simulation Options
+
+To see the full list of options available, run the following command ([Description of NoC parameters](#noc-parameterization)):
+
+```bash
+make help
+```
+
+* **Behavioral Simulation (`SIMULATION=1`, Default)**: Uses fast, lightweight behavioral FIFO models.
+* **Intel FPGA IP Simulation (`SIMULATION=0`)**: Simulates the design using Intel FPGA IP blocks (`scfifo`, `dcfifo`).
+
+### Simulation Examples
+Run a 4 $\times$ 4 Mesh topology simulation in ModelSim:
+```bash
+make modelsim TOPOLOGY=mesh NUM_ROWS=4 NUM_COLS=4
+```
+
+Run a clock-crossing simulation using Intel FPGA IPs in ModelSim:
+```bash
+make modelsim SIMULATION=0 CLKCROSS_FACTOR=2
+```
+
+## NoC Parameterization
+
 ### Generic NoC Parameters
 Most are a subset of the [Router Parameters](#router-parameters) but the mapping is provided below.
 
@@ -185,59 +245,3 @@ NoC Topology specific parameters are same as in the [NoC section](#noc) and not 
 ### AXI-S Shims (axis_serdes_shims.sv)
 
 Contain modules `axis_serializer_shim_in` and `axis_deserializer_shim_out` which form the input and output shims respectively. Parameters are forwarded and can be seen in the top-level [AXI-S NoC parameters](#generic-parameters)
-
-## Simulation
-
-Simulations are configured and executed using the Makefile located in the `test` directory.
-
-### Quick Start
-To run the default simulation (Verilator):
-```bash
-cd test
-make run
-```
-
-### Simulation Environments
-
-We support both **Verilator** and **ModelSim** simulation environments.
-
-#### Verilator
-*Note: Requires **Verilator 5.0 or later** (tested with version 5.048).*
-
-Verilator simulations are compiled with behavioral FIFO models (`SIMULATION=1`):
-```bash
-make verilator [TOPOLOGY=...] [NUM_INPUTS=...] [PACKET_COUNT=...]
-```
-
-To point to a local installation of Verilator instead of the global one, override the `VERILATOR` path on the command line. You may also need to define the `VERILATOR_ROOT` environment variable pointing to the root of your local installation so that the compiler can locate Verilator's runtime headers and libraries:
-```bash
-export VERILATOR_ROOT=/path/to/local/verilator
-make verilator VERILATOR=$VERILATOR_ROOT/bin/verilator
-```
-
-#### ModelSim
-ModelSim supports both behavioral simulation and actual Intel FPGA IPs/libraries:
-```bash
-make modelsim [SIMULATION=0|1] [CLKCROSS_FACTOR=...] [TOPOLOGY=...]
-```
-
-* **Behavioral Simulation (`SIMULATION=1`, Default)**: Uses fast, lightweight behavioral FIFO models.
-* **Intel FPGA IP Simulation (`SIMULATION=0`)**: Simulates the design using Intel FPGA IP blocks (`scfifo`, `dcfifo`).
-  * On the first run, the simulation script automatically executes `dev_com` to compile the required Quartus EDA simulation libraries (`lpm_ver` and `altera_mf_ver`) into the local `libraries/` directory.
-  * **Optimized Setup**: The library compilation is optimized to compile only the essential Megafunction (`altera_mf.v`) and LPM (`220model.v`) files, completing in under 30 seconds rather than compiling all hardware device atoms.
-
-### Simulation Examples
-Run a clock-crossing simulation using Intel FPGA IPs in ModelSim:
-```bash
-make modelsim SIMULATION=0 CLKCROSS_FACTOR=2
-```
-
-Run a $4 \times 4$ Mesh topology simulation in ModelSim:
-```bash
-make modelsim TOPOLOGY=mesh NUM_ROWS=4 NUM_COLS=4
-```
-
-Clean build and simulation artifacts:
-```bash
-make clean
-```
