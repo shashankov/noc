@@ -7,5 +7,6 @@ transcript
 # Quartus backups
 *.bak
 
-# Verilator related
+# Test related
 obj_dir/
+regress_logs/

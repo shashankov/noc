@@ -246,7 +246,7 @@ module generic_harness_tb_sim();
         if (total_errors == 0)
             $display("TEST PASSED");
         else
-            $display("FAILURES DETECTED: %0d total errors", total_errors);
+            $error("FAILURES DETECTED: %0d total errors", total_errors);
         $display("=============================================================");
         $finish;
 

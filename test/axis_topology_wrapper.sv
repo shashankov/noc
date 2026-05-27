@@ -64,18 +64,18 @@ module axis_topology_wrapper #(
                 $fatal(1, "Error: Ring/Double Ring topologies require NUM_INPUTS (%0d) == NUM_OUTPUTS (%0d)", NUM_INPUTS, NUM_OUTPUTS);
             end
         end else if (TOPOLOGY == "butterfly") begin
-            if (NUM_INPUTS > K ** N) begin
-                $fatal(1, "Error: Butterfly topology requires NUM_INPUTS (%0d) <= K ** N (%0d)", NUM_INPUTS, K ** N);
+            if (NUM_INPUTS != K ** N) begin
+                $fatal(1, "Error: Butterfly topology requires NUM_INPUTS (%0d) == K ** N (%0d)", NUM_INPUTS, K ** N);
             end
-            if (NUM_OUTPUTS > K ** N) begin
-                $fatal(1, "Error: Butterfly topology requires NUM_OUTPUTS (%0d) <= K ** N (%0d)", NUM_OUTPUTS, K ** N);
+            if (NUM_OUTPUTS != K ** N) begin
+                $fatal(1, "Error: Butterfly topology requires NUM_OUTPUTS (%0d) == K ** N (%0d)", NUM_OUTPUTS, K ** N);
             end
         end else if (TOPOLOGY == "mesh" || TOPOLOGY == "torus" || TOPOLOGY == "directional_torus") begin
-            if (NUM_INPUTS > NUM_ROWS * NUM_COLS) begin
-                $fatal(1, "Error: %s topology requires NUM_INPUTS (%0d) <= NUM_ROWS * NUM_COLS (%0d)", TOPOLOGY, NUM_INPUTS, NUM_ROWS * NUM_COLS);
+            if (NUM_INPUTS != NUM_ROWS * NUM_COLS) begin
+                $fatal(1, "Error: %s topology requires NUM_INPUTS (%0d) == NUM_ROWS * NUM_COLS (%0d)", TOPOLOGY, NUM_INPUTS, NUM_ROWS * NUM_COLS);
             end
-            if (NUM_OUTPUTS > NUM_ROWS * NUM_COLS) begin
-                $fatal(1, "Error: %s topology requires NUM_OUTPUTS (%0d) <= NUM_ROWS * NUM_COLS (%0d)", TOPOLOGY, NUM_OUTPUTS, NUM_ROWS * NUM_COLS);
+            if (NUM_OUTPUTS != NUM_ROWS * NUM_COLS) begin
+                $fatal(1, "Error: %s topology requires NUM_OUTPUTS (%0d) == NUM_ROWS * NUM_COLS (%0d)", TOPOLOGY, NUM_OUTPUTS, NUM_ROWS * NUM_COLS);
             end
         end
 
