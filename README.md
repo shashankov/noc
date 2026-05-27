@@ -1,4 +1,4 @@
-# ReCONNECT: Simple Intel FPGA Optimized NoC
+# ReCONNECT: FPGA-Optimized RTL-Native Network-on-Chip (NoC)
 
 Author: Shashank Obla (https://www.andrew.cmu.edu/user/sobla)
 
@@ -15,6 +15,12 @@ To run the default simulation, install Verilator 5.0+ and run the following comm
 ```bash
 cd test
 make run
+```
+
+#### Regression
+We also provide a regression suite testing various NoC topologies and configurations:
+```bash
+make regress
 ```
 
 ### Simulation Environments
@@ -36,10 +42,12 @@ make verilator VERILATOR=$VERILATOR_ROOT/bin/verilator
 ```
 
 #### ModelSim
-ModelSim supports both behavioral simulation and actual Intel FPGA IPs/libraries:
+ModelSim supports both behavioral simulation and actual Intel FPGA IPs/libraries.
 ```bash
 make modelsim [OPTIONS...]
 ```
+
+To run simulations with Quartus IPs, update your Quartus installation path on line 116 of [msim_setup.tcl](./test/sim/msim_setup.tcl) (Verified with Quartus version 23.2)
 
 ### Simulation Options
 
