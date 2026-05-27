@@ -1,6 +1,8 @@
 # Simple Intel FPGA Optimized NoC
 
-Author: Shashank Obla (sobla@andrew.cmu.edu)
+Author: Shashank Obla (https://www.andrew.cmu.edu/user/sobla)
+
+The FPGA-Optimized Network-on-Chip (NoC) is a highly-parametrizable, high-performance soft network-on-chip designed to be customizable to the needs of the application while being resource-minimal. Written directly in SystemVerilog (RTL), the NoC is specially optimized for high-frequency operations on Intel FPGA architectures (such as Intel Agilex 7) and operates at frequencies exceeding 500 MHz. Find more about it here: [https://www.andrew.cmu.edu/user/sobla/projects/noc/](https://www.andrew.cmu.edu/user/sobla/projects/noc/)
 
 ## NoC
 ### Generic NoC Parameters
