@@ -1,8 +1,8 @@
-# Simple Intel FPGA Optimized NoC
+# ReCONNECT: Simple Intel FPGA Optimized NoC
 
 Author: Shashank Obla (https://www.andrew.cmu.edu/user/sobla)
 
-The FPGA-Optimized Network-on-Chip (NoC) is a highly-parametrizable, high-performance soft network-on-chip designed to be customizable to the needs of the application while being resource-minimal. Written directly in SystemVerilog (RTL), the NoC is specially optimized for high-frequency operations on Intel FPGA architectures (such as Intel Agilex 7) and operates at frequencies exceeding 500 MHz. Find more about it here: [https://www.andrew.cmu.edu/user/sobla/projects/noc/](https://www.andrew.cmu.edu/user/sobla/projects/noc/)
+ReCONNECT is a highly-parametrizable, high-performance soft network-on-chip designed to be customizable to the needs of the application while being resource-minimal and tuned for modern FPGA architectures. Written directly in SystemVerilog (RTL), the NoC is specially optimized for high-frequency operations on Intel FPGA architectures (such as Intel Agilex 7) and operates at frequencies exceeding 500 MHz. Find more about it here: [https://www.andrew.cmu.edu/user/sobla/projects/noc/](https://www.andrew.cmu.edu/user/sobla/projects/noc/)
 
 ## NoC
 ### Generic NoC Parameters
@@ -188,8 +188,56 @@ Contain modules `axis_serializer_shim_in` and `axis_deserializer_shim_out` which
 
 ## Simulation
 
-Note: Testbenches are not maintained and may become obsolete due to new updates
+Simulations are configured and executed using the Makefile located in the `test` directory.
 
-- `test`: Contains testbench files for various components in the repository.
-  - `harness`: Contains traffic generator and checker for the NoC with AXI-Stream wrapper.
-- `sim`: Contains files and tcl scripts required to perform a Modelsim simulation of the testbenches. `dev_com` needs to be run once to build the Quartus simulation libraries (looks for 23.2 by default). Run as `vsim -do [-c] <tcl script>`.
+### Quick Start
+To run the default simulation (Verilator):
+```bash
+cd test
+make run
+```
+
+### Simulation Environments
+
+We support both **Verilator** and **ModelSim** simulation environments.
+
+#### Verilator
+*Note: Requires **Verilator 5.0 or later** (tested with version 5.048).*
+
+Verilator simulations are compiled with behavioral FIFO models (`SIMULATION=1`):
+```bash
+make verilator [TOPOLOGY=...] [NUM_INPUTS=...] [PACKET_COUNT=...]
+```
+
+To point to a local installation of Verilator instead of the global one, override the `VERILATOR` path on the command line. You may also need to define the `VERILATOR_ROOT` environment variable pointing to the root of your local installation so that the compiler can locate Verilator's runtime headers and libraries:
+```bash
+export VERILATOR_ROOT=/path/to/local/verilator
+make verilator VERILATOR=$VERILATOR_ROOT/bin/verilator
+```
+
+#### ModelSim
+ModelSim supports both behavioral simulation and actual Intel FPGA IPs/libraries:
+```bash
+make modelsim [SIMULATION=0|1] [CLKCROSS_FACTOR=...] [TOPOLOGY=...]
+```
+
+* **Behavioral Simulation (`SIMULATION=1`, Default)**: Uses fast, lightweight behavioral FIFO models.
+* **Intel FPGA IP Simulation (`SIMULATION=0`)**: Simulates the design using Intel FPGA IP blocks (`scfifo`, `dcfifo`).
+  * On the first run, the simulation script automatically executes `dev_com` to compile the required Quartus EDA simulation libraries (`lpm_ver` and `altera_mf_ver`) into the local `libraries/` directory.
+  * **Optimized Setup**: The library compilation is optimized to compile only the essential Megafunction (`altera_mf.v`) and LPM (`220model.v`) files, completing in under 30 seconds rather than compiling all hardware device atoms.
+
+### Simulation Examples
+Run a clock-crossing simulation using Intel FPGA IPs in ModelSim:
+```bash
+make modelsim SIMULATION=0 CLKCROSS_FACTOR=2
+```
+
+Run a $4 \times 4$ Mesh topology simulation in ModelSim:
+```bash
+make modelsim TOPOLOGY=mesh NUM_ROWS=4 NUM_COLS=4
+```
+
+Clean build and simulation artifacts:
+```bash
+make clean
+```

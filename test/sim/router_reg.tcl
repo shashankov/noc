@@ -9,10 +9,10 @@
 # generated the IP script, relative to the directory from which you launch
 # the simulator.
 #
-set QSYS_SIMDIR /home/sobla/workspace/noc/rtl/sim/
+set QSYS_SIMDIR /home/sobla/workspace/noc/rtl/test/sim/
 #
 # Source the generated IP simulation script.
-source $QSYS_SIMDIR/mentor/msim_setup.tcl
+source $QSYS_SIMDIR/msim_setup.tcl
 #
 # Set any compilation options you require (this is unusual).
 # set USER_DEFINED_COMPILE_OPTIONS <compilation options>
@@ -29,7 +29,7 @@ source $QSYS_SIMDIR/mentor/msim_setup.tcl
 # the top level. (These are all the files required for simulation other
 # than the files compiled by the Quartus-generated IP simulation script)
 #
-vlog +acc $QSYS_SIMDIR/../test/router_reg_tb.sv $QSYS_SIMDIR/../src/*.sv $QSYS_SIMDIR/../src/topologies/*.sv $QSYS_SIMDIR/../src/fifos/*.sv
+vlog +acc $QSYS_SIMDIR/../router_reg_tb.sv $QSYS_SIMDIR/../../src/*.sv $QSYS_SIMDIR/../../src/topologies/*.sv $QSYS_SIMDIR/../../src/fifos/*.sv
 #
 # Set the top-level simulation or testbench module/entity name, which is
 # used by the elab command to elaborate the top level.
