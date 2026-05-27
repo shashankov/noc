@@ -1,0 +1,62 @@
+name: NoC Regression CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  regress:
+    name: Verilator Regression Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy
+
+      - name: Cache Verilator Build
+        id: cache-verilator
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/verilator-bin
+          key: verilator-5.048-v1
+
+      - name: Install Build Prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git help2man perl python3 make autoconf g++ flex bison ccache
+          sudo apt-get install -y libgoogle-perftools-dev libjemalloc-dev numactl perl-doc
+          sudo apt-get install -y libfl2 || true
+          sudo apt-get install -y libfl-dev || true
+          sudo apt-get install -y zlibc zlib1g zlib1g-dev liblz4 liblz4-dev || true
+
+      - name: Compile and Install Verilator v5.048
+        if: steps.cache-verilator.outputs.cache-hit != 'true'
+        run: |
+          unset VERILATOR_ROOT
+          git clone https://github.com/verilator/verilator
+          cd verilator
+          git checkout v5.048
+          autoconf
+          ./configure --prefix=/home/runner/verilator-bin
+          make -j$(nproc)
+          make install
+
+      - name: Add Verilator to PATH
+        run: |
+          echo "/home/runner/verilator-bin/bin" >> $GITHUB_PATH
+
+      - name: Run Regression Suite
+        run: |
+          make -C test regress REGRESS_PACKET_COUNT=65536
