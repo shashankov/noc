@@ -29,7 +29,7 @@ source $QSYS_SIMDIR/mentor/msim_setup.tcl
 # the top level. (These are all the files required for simulation other
 # than the files compiled by the Quartus-generated IP simulation script)
 #
-vlog +acc $QSYS_SIMDIR/../testbench/router_harness_tb_sim.sv $QSYS_SIMDIR/../*sv $QSYS_SIMDIR/../test_harness/*sv
+vlog +acc $QSYS_SIMDIR/../test/router_harness_tb_sim.sv $QSYS_SIMDIR/../src/*.sv $QSYS_SIMDIR/../src/topologies/*.sv $QSYS_SIMDIR/../src/fifos/*.sv $QSYS_SIMDIR/../test/harness/*sv
 #
 # Set the top-level simulation or testbench module/entity name, which is
 # used by the elab command to elaborate the top level.
@@ -42,6 +42,7 @@ set TOP_LEVEL_NAME router_harness_tb_sim
 # Call command to elaborate your design and testbench.
 elab_debug
 
+if { [batch_mode] == 0 } {
 add wave -position insertpoint  \
 sim:/router_harness_tb_sim/clk \
 sim:/router_harness_tb_sim/clk_noc \
@@ -134,6 +135,7 @@ sim:/router_harness_tb_sim/dut/credit_counter_in \
 sim:/router_harness_tb_sim/dut/credit_counter_plus \
 sim:/router_harness_tb_sim/dut/grant_pipeline_in \
 sim:/router_harness_tb_sim/dut/grant_pipeline_out
+}
 
 # Run the simulation.
 run -a

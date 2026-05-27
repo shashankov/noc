@@ -188,6 +188,6 @@ Contain modules `axis_serializer_shim_in` and `axis_deserializer_shim_out` which
 
 Note: Testbenches are not maintained and may become obsolete due to new updates
 
-- `test_harness`: Contains traffic generator and checker for the NoC with AXI-Stream wrapper.
-- `testbench`: Contains testbench files for various components in the repository.
-- `sim`: Containes files and tcl scripts required to perform a Modelsim simulation of the testbenches. `dev_com` needs to be run once to build the Quartus simulation libraries (looks for 23.2 by default). Run as `vsim -do [-c] <tcl script>`.
+- `test`: Contains testbench files for various components in the repository.
+  - `harness`: Contains traffic generator and checker for the NoC with AXI-Stream wrapper.
+- `sim`: Contains files and tcl scripts required to perform a Modelsim simulation of the testbenches. `dev_com` needs to be run once to build the Quartus simulation libraries (looks for 23.2 by default). Run as `vsim -do [-c] <tcl script>`.

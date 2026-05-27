@@ -105,7 +105,7 @@ if ![info exists SYSTEM_INSTANCE_NAME] {
 }
 
 if ![info exists TOP_LEVEL_NAME] { 
-  set TOP_LEVEL_NAME "fifo_test.fifo_test"
+  set TOP_LEVEL_NAME "generic_harness_tb_sim"
 }
 
 if ![info exists QSYS_SIMDIR] { 
@@ -141,8 +141,48 @@ if ![info exists FORCE_MODELSIM_AE_SELECTION] {
 }
 
 # ----------------------------------------
-# Source Common Tcl File
-source $QSYS_SIMDIR/common/modelsim_files.tcl
+# Inline Common Tcl functions (previously in modelsim_files.tcl)
+# ----------------------------------------
+proc get_design_libraries {} {
+  return [dict create]
+}
+
+proc get_memory_files {QSYS_SIMDIR} {
+  return [list]
+}
+
+proc get_common_design_files {USER_DEFINED_COMPILE_OPTIONS USER_DEFINED_VERILOG_COMPILE_OPTIONS USER_DEFINED_VHDL_COMPILE_OPTIONS QSYS_SIMDIR} {
+  return [dict create]
+}
+
+proc get_design_files {USER_DEFINED_COMPILE_OPTIONS USER_DEFINED_VERILOG_COMPILE_OPTIONS USER_DEFINED_VHDL_COMPILE_OPTIONS QSYS_SIMDIR} {
+  return [list]
+}
+
+proc get_elab_options {SIMULATOR_TOOL_BITNESS} {
+  return ""
+}
+
+proc get_sim_options {SIMULATOR_TOOL_BITNESS} {
+  return ""
+}
+
+proc get_env_variables {SIMULATOR_TOOL_BITNESS} {
+  set ENV_VARIABLES [dict create]
+  dict set ENV_VARIABLES "LD_LIBRARY_PATH" [dict create]
+  return $ENV_VARIABLES
+}
+
+proc normalize_path {FILEPATH} {
+  if {[catch { package require fileutil } err]} { 
+    return $FILEPATH 
+  } 
+  set path [fileutil::lexnormalize [file join [pwd] $FILEPATH]]  
+  if {[file pathtype $FILEPATH] eq "relative"} { 
+    set path [fileutil::relative [pwd] $path] 
+  } 
+  return $path 
+}
 
 
 # ----------------------------------------

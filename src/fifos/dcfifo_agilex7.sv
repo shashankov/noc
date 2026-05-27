@@ -51,6 +51,7 @@ module  dcfifo_agilex7 #(
 // synopsys translate_on
 `endif
 
+`ifndef SIMULATION
     wire [WIDTH-1:0] sub_wire0;
     wire  sub_wire1;
     wire  sub_wire2;
@@ -89,6 +90,99 @@ module  dcfifo_agilex7 #(
         dcfifo_component.use_eab  = "ON",
         dcfifo_component.write_aclr_synch  = "ON",
         dcfifo_component.wrsync_delaypipe  = 4 + EXTRA_SYNC_STAGES;
+`else
+
+    localparam ADDR_WIDTH = $clog2(DEPTH);
+    localparam PTR_WIDTH = ADDR_WIDTH + 1;
+    localparam SYNC_STAGES = 4 + EXTRA_SYNC_STAGES;
+
+    logic [WIDTH-1:0] mem [DEPTH-1:0];
+
+    logic [PTR_WIDTH-1:0] wr_ptr;
+    logic [PTR_WIDTH-1:0] rd_ptr;
+
+    logic [PTR_WIDTH-1:0] wr_ptr_sync [SYNC_STAGES-1:0];
+    logic [PTR_WIDTH-1:0] rd_ptr_sync [SYNC_STAGES-1:0];
+
+    logic [PTR_WIDTH-1:0] diff_rd;
+    logic [PTR_WIDTH-1:0] diff_wr;
+
+    // Synchronize wr_ptr to rdclk domain
+    always_ff @(posedge rdclk or posedge aclr) begin
+        if (aclr) begin
+            for (int i = 0; i < SYNC_STAGES; i++) begin
+                wr_ptr_sync[i] <= '0;
+            end
+        end else begin
+            wr_ptr_sync[0] <= wr_ptr;
+            for (int i = 1; i < SYNC_STAGES; i++) begin
+                wr_ptr_sync[i] <= wr_ptr_sync[i-1];
+            end
+        end
+    end
+
+    // Synchronize rd_ptr to wrclk domain
+    always_ff @(posedge wrclk or posedge aclr) begin
+        if (aclr) begin
+            for (int i = 0; i < SYNC_STAGES; i++) begin
+                rd_ptr_sync[i] <= '0;
+            end
+        end else begin
+            rd_ptr_sync[0] <= rd_ptr;
+            for (int i = 1; i < SYNC_STAGES; i++) begin
+                rd_ptr_sync[i] <= rd_ptr_sync[i-1];
+            end
+        end
+    end
+
+    assign diff_rd = wr_ptr_sync[SYNC_STAGES-1] - rd_ptr;
+    assign diff_wr = wr_ptr - rd_ptr_sync[SYNC_STAGES-1];
+
+    assign rdempty = (diff_rd == 0);
+    assign wrfull  = (diff_wr == DEPTH);
+    assign wrusedw = diff_wr;
+
+    // Write logic
+    always_ff @(posedge wrclk or posedge aclr) begin
+        if (aclr) begin
+            wr_ptr <= '0;
+        end else begin
+            if (wrreq && !wrfull) begin
+                wr_ptr <= wr_ptr + 1'b1;
+            end
+            if (wrreq && wrfull) begin
+                $warning("Overflow in DCFIFO");
+            end
+        end
+    end
+
+    always_ff @(posedge wrclk) begin
+        if (wrreq && !wrfull) begin
+            mem[ADDR_WIDTH'(wr_ptr)] <= data;
+        end
+    end
+
+    // Read logic
+    logic [WIDTH-1:0] q_reg;
+
+    always_ff @(posedge rdclk or posedge aclr) begin
+        if (aclr) begin
+            rd_ptr <= '0;
+            q_reg <= '0;
+        end else begin
+            if (rdreq && !rdempty) begin
+                rd_ptr <= rd_ptr + 1'b1;
+                q_reg <= mem[ADDR_WIDTH'(rd_ptr)];
+            end
+            if (rdreq && rdempty) begin
+                $warning("Underflow in DCFIFO");
+            end
+        end
+    end
+
+    assign q = (SHOWAHEAD == "ON") ? mem[ADDR_WIDTH'(rd_ptr)] : q_reg;
+
+`endif
 
 endmodule
 

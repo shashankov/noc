@@ -283,7 +283,6 @@ module router_harness_tb_sim();
         .PIPELINE_ROUTE_COMPUTE(1),
         .PIPELINE_ARBITER(1),
         .PIPELINE_OUTPUT(1),
-        .DISABLE_SELFLOOP(0),
         .FORCE_MLAB(1)
     ) dut (
         .clk,

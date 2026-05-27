@@ -6,3 +6,6 @@ transcript
 
 # Quartus backups
 *.bak
+
+# Verilator related
+obj_dir/

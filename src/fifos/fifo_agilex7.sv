@@ -83,47 +83,64 @@ module  fifo_agilex7 #(
 `else
 
     logic empty, full;
-    logic [WIDTH - 1 : 0] mem [DEPTH : 0];
-    logic [$clog2(DEPTH) : 0] front_index, back_index, front_index_next, back_index_next;
+    localparam [$clog2(DEPTH)-1:0] DEPTH_MINUS_1 = ($clog2(DEPTH))'(DEPTH - 1);
+    localparam [$clog2(DEPTH):0] DEPTH_VAL = ($clog2(DEPTH)+1)'(DEPTH);
 
-    assign front_index_next = (rdreq == 1'b1) ? ((front_index == (DEPTH)) ? '0 : (front_index + 1)) : front_index;
-    assign back_index_next = (wrreq == 1'b1) ? ((back_index == (DEPTH)) ? '0 : (back_index + 1)) : back_index;
+    logic [WIDTH - 1 : 0] mem [DEPTH - 1 : 0];
+    logic [$clog2(DEPTH) - 1 : 0] front_index, back_index;
+    logic [$clog2(DEPTH) : 0] count;
+    logic [$clog2(DEPTH) : 0] count_next;
+    logic [WIDTH - 1 : 0] q_reg;
+    logic doing_write, doing_read;
 
-    always @(posedge clock) begin
+    assign doing_write = wrreq && (!full || rdreq);
+    assign doing_read = rdreq && !empty;
+
+    always_comb begin
+        count_next = count;
+        if (doing_write && !doing_read) begin
+            count_next = count + 1'b1;
+        end else if (doing_read && !doing_write) begin
+            count_next = count - 1'b1;
+        end
+    end
+
+    logic has_been_reset = 1'b0;
+
+    always_ff @(posedge clock) begin
         if (sclr == 1'b1) begin
             front_index <= '0;
             back_index <= '0;
+            count <= '0;
             empty <= 1'b1;
             full <= 1'b0;
+            q_reg <= '0;
+            has_been_reset <= 1'b1;
         end else begin
-            front_index <= front_index_next;
-            back_index <= back_index_next;
-            if (wrreq == 1'b1) begin
-                // $display("@%d: FIFO %m: Writing data %b to index %d", $time, data, back_index);
+            if (doing_write) begin
                 mem[back_index] <= data;
-                empty <= 1'b0;
-                if (back_index_next == front_index_next) begin
-                    full <= 1'b1;
-                end
-                if (full == 1'b1) begin
-                    $warning("Overflow in FIFO");
-                end
+                back_index <= (back_index == DEPTH_MINUS_1) ? '0 : back_index + 1'b1;
             end
-            if (rdreq == 1'b1) begin
-                // $display("@%d: FIFO %m: Reading data %b from index %d", $time, mem[front_index], front_index);
-                full <= 1'b0;
-                if (front_index_next == back_index_next) begin
-                    empty <= 1'b1;
-                end
-                if (empty == 1'b1) begin
-                    $warning("Underflow in FIFO");
-                end
+            if (doing_read) begin
+                q_reg <= mem[front_index];
+                front_index <= (front_index == DEPTH_MINUS_1) ? '0 : front_index + 1'b1;
+            end
+
+            count <= count_next;
+            empty <= (count_next == '0);
+            full <= (count_next == DEPTH_VAL);
+
+            if (wrreq && full && !rdreq) begin
+                $warning("Overflow in FIFO");
+            end
+            if (rdreq && empty && has_been_reset) begin
+                $warning("Underflow in FIFO");
             end
         end
     end
 
-    assign q = mem[(SHOWAHEAD == "ON") ? front_index : (front_index == '0 ? (DEPTH) : (front_index - 1))];
-    assign usedw = (back_index > front_index) ? (back_index - front_index) : (DEPTH + 1 + back_index - front_index);
+    assign q = (SHOWAHEAD == "ON") ? mem[front_index] : q_reg;
+    assign usedw = count[$clog2(DEPTH) - 1 : 0];
 
 `endif
 

@@ -84,7 +84,7 @@ module axis_butterfly_harness_tb_sim();
     logic [15 : 0] load;
     // real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.525, 0.55, 0.56, 0.57, 0.575, 0.58, 0.585, 0.59, 0.6};
     // real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.66, 0.67, 0.675, 0.68, 0.685, 0.69, 0.7};
-    real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.68, 0.69, 0.7, 0.8};
+    real sweep_load[] = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.8, 0.85, 0.9};
     // real sweep_load[] = {0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01};
 
     initial begin
@@ -224,11 +224,11 @@ module axis_butterfly_harness_tb_sim();
         .SERIALIZATION_FACTOR           (SERIALIZATION_FACTOR),
         .CLKCROSS_FACTOR                (CLKCROSS_FACTOR),
         .SINGLE_CLOCK                   (SINGLE_CLOCK),
-        .SERDES_IN_BUFFER_DEPTH         (4),
-        .SERDES_OUT_BUFFER_DEPTH        (32),
+        .SERDES_IN_BUFFER_DEPTH         (128),
+        .SERDES_OUT_BUFFER_DEPTH        (128),
         .SERDES_EXTRA_SYNC_STAGES       (0),
 
-        .FLIT_BUFFER_DEPTH              (8),
+        .FLIT_BUFFER_DEPTH              (128),
         .ROUTING_TABLE_PREFIX           (ROUTING_TABLE_PREFIX),
         .ROUTER_PIPELINE_ROUTE_COMPUTE  (1),
         .ROUTER_PIPELINE_ARBITER        (0),

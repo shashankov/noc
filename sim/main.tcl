@@ -29,7 +29,7 @@ source $QSYS_SIMDIR/mentor/msim_setup.tcl
 # the top level. (These are all the files required for simulation other
 # than the files compiled by the Quartus-generated IP simulation script)
 #
-vlog +acc $QSYS_SIMDIR/../testbench/router_tb.sv $QSYS_SIMDIR/../*sv
+vlog +acc $QSYS_SIMDIR/../test/router_tb.sv $QSYS_SIMDIR/../src/*.sv $QSYS_SIMDIR/../src/topologies/*.sv $QSYS_SIMDIR/../src/fifos/*.sv
 #
 # Set the top-level simulation or testbench module/entity name, which is
 # used by the elab command to elaborate the top level.
@@ -43,6 +43,7 @@ set TOP_LEVEL_NAME router_tb
 elab_debug
 #
 
+if { [batch_mode] == 0 } {
 add wave -position insertpoint  \
 sim:/router_tb/clk \
 sim:/router_tb/rst_n \
@@ -97,6 +98,7 @@ sim:/router_tb/dut/pipeline_enable \
 sim:/router_tb/dut/data_out_packed \
 sim:/router_tb/dut/flit_out_valid \
 sim:/router_tb/dut/credit_counter
+}
 
 # add wave -position insertpoint  \
 # {sim:/router_tb/dut/genblk4/genblk1[0]/arbiter_inst/NUM_INPUTS} \
