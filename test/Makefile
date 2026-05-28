@@ -3,22 +3,34 @@
 
 VERILATOR ?= verilator
 THREADS ?= 4
-VERILATOR_FLAGS = --binary --top-module generic_harness_tb_sim -Wno-fatal -Wno-WIDTH -Wno-PINMISSING -Wno-IMPLICIT -DSIMULATION --threads $(THREADS)
+VERILATOR_FLAGS = --binary --top-module generic_harness_tb_sim -Wno-fatal -Wno-WIDTH -Wno-PINMISSING -Wno-IMPLICIT --threads $(THREADS)
 
 VSIM = vsim -c
 PYTHON ?= python3
 
 # Default topology configuration
 TOPOLOGY ?= router
-SIMULATION ?= 1
+QUARTUS_FIFO ?= 0
+VIVADO_FIFO ?= 0
 
-# Verilator does not support compiling with Intel closed-source IPs, so it must always use SIMULATION=1.
-ifeq ($(SIMULATION),0)
+# Default regression simulator. Verilator only supports behavioral simulation (neither QUARTUS_FIFO nor VIVADO_FIFO is 1).
+# If the user chooses Vivado or Quartus FIFOs, default to ModelSim.
+ifeq ($(VIVADO_FIFO),1)
+  REGRESS_SIM ?= modelsim
+else ifeq ($(QUARTUS_FIFO),1)
+  REGRESS_SIM ?= modelsim
+else
+  REGRESS_SIM ?= verilator
+endif
+
+# Verilator does not support compiling with closed-source FPGA IPs or XPM libraries.
+# Therefore, Verilator simulations must be compiled with the behavioral model (neither QUARTUS_FIFO nor VIVADO_FIFO is 1).
+ifneq ($(filter 1,$(QUARTUS_FIFO) $(VIVADO_FIFO)),)
   ifneq ($(filter all run verilator obj_dir/Vgeneric_harness_tb_sim,$(MAKECMDGOALS)),)
-    $(error Error: Verilator simulation must always be compiled with SIMULATION=1. Turn off SIMULATION (SIMULATION=0) only for the ModelSim target.)
+    $(error Error: Verilator simulation only supports the behavioral model. Turn off QUARTUS_FIFO and VIVADO_FIFO for Verilator targets.)
   endif
   ifeq ($(MAKECMDGOALS),)
-    $(error Error: Verilator simulation (default target) must always be compiled with SIMULATION=1. Turn off SIMULATION (SIMULATION=0) only for the ModelSim target.)
+    $(error Error: Verilator simulation (default target) only supports the behavioral model. Turn off QUARTUS_FIFO and VIVADO_FIFO for Verilator targets.)
   endif
 endif
 NUM_INPUTS ?= 4
@@ -114,7 +126,7 @@ VSIM_GFLAGS = \
   -gPIPELINE_LINKS=$(PIPELINE_LINKS) \
   -gEXTRA_PIPELINE_LONG_LINKS=$(EXTRA_PIPELINE_LONG_LINKS)
 
-.PHONY: all run verilator modelsim clean help gen_routing_table regress regress_clean
+.PHONY: all run verilator modelsim clean help gen_routing_table regress regress_clean regress_xilinx regress_vivado regress_quartus
 
 all: help
 
@@ -149,11 +161,12 @@ FORCE:
 
 modelsim: gen_routing_table
 	@echo "--- Running Generic Testbench ($(TOPOLOGY)) in ModelSim ---"
-	$(VSIM) -do "set USER_DEFINED_ELAB_OPTIONS \"$(VSIM_GFLAGS)\"; set SIMULATION $(SIMULATION); do sim/generic_harness_sim.tcl; quit -f"
+	$(VSIM) -do "set USER_DEFINED_ELAB_OPTIONS \"$(VSIM_GFLAGS)\"; set QUARTUS_FIFO $(QUARTUS_FIFO); set VIVADO_FIFO $(VIVADO_FIFO); do sim/generic_harness_sim.tcl; quit -f"
 
 clean:
 	rm -rf obj_dir
 	rm -rf libraries vsim.wlf transcript modelsim.ini
+	rm -rf .Xil vivado*.log vivado*.jou compile_simlib.log .cxl.*
 
 # ---------------------------------------------------------------------------
 # Regression test suite
@@ -272,10 +285,16 @@ regress:
 	 	args=$$($(MAKE) --no-print-directory _regress_print_args_$$cfg 2>/dev/null); \
 	 	logfile=$(REGRESS_LOG_DIR)/$$cfg.log; \
 	 	printf "  [%-28s] " "$$cfg"; \
-	 	$(MAKE) --no-print-directory clean > /dev/null 2>&1; \
+	 	if [ "$(REGRESS_SIM)" = "verilator" ]; then \
+	 		rm -rf obj_dir; \
+	 	else \
+	 		rm -rf libraries/work vsim.wlf transcript; \
+	 	fi; \
 	 	start_time=$$(date +%s); \
-	 	$(MAKE) --no-print-directory verilator $$args \
+	 	$(MAKE) --no-print-directory $(REGRESS_SIM) $$args \
 	 	       PACKET_COUNT=$(REGRESS_PACKET_COUNT) \
+	 	       QUARTUS_FIFO=$(QUARTUS_FIFO) \
+	 	       VIVADO_FIFO=$(VIVADO_FIFO) \
 	 	       > $$logfile 2>&1; \
 	 	status=$$?; \
 	 	duration=$$(( $$(date +%s) - start_time )); \
@@ -310,6 +329,14 @@ $(foreach cfg,$(REGRESSION_CONFIGS),\
 regress_clean:
 	rm -rf $(REGRESS_LOG_DIR)
 
+regress_vivado:
+	$(MAKE) regress REGRESS_SIM=modelsim VIVADO_FIFO=1 QUARTUS_FIFO=0
+
+regress_xilinx: regress_vivado
+
+regress_quartus:
+	$(MAKE) regress REGRESS_SIM=modelsim QUARTUS_FIFO=1 VIVADO_FIFO=0
+
 help:
 	@echo "NOC Generic Testbench Runner"
 	@echo ""
@@ -319,6 +346,8 @@ help:
 	@echo "  make modelsim                               - Run with ModelSim"
 	@echo "  make clean                                  - Clean build directories"
 	@echo "  make regress                                - Run full regression suite"
+	@echo "  make regress_vivado                         - Run full regression suite with Vivado/Xilinx FIFOs (ModelSim)"
+	@echo "  make regress_quartus                        - Run full regression suite with Quartus/Intel FIFOs (ModelSim)"
 	@echo "  make regress_clean                          - Remove regression log files"
 	@echo ""
 	@echo "Parameters (and default values):"
@@ -344,4 +373,6 @@ help:
 	@echo "  RESET_NUM_OUTPUT_REGISTERS  = 1"
 	@echo "  PIPELINE_LINKS              = 0"
 	@echo "  EXTRA_PIPELINE_LONG_LINKS   = 0"
-	@echo "  SIMULATION                  = 1        (for ModelSim only: set to 0 to compile with Intel FPGA IPs and libraries)"
+	@echo "  QUARTUS_FIFO                = 0        (for ModelSim only: set to 1 to compile with Quartus/Intel FPGA IPs and libraries)"
+	@echo "  VIVADO_FIFO                 = 0        (set to 1 to use Vivado/Xilinx native/XPM FIFOs)"
+	@echo "  REGRESS_SIM                 = <auto>   (simulator for regression: verilator|modelsim)"

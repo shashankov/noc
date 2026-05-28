@@ -342,7 +342,7 @@ module axis_clkcross_shim_in #(
 
     // Instantiations
     // Destination + Tail buffer
-    dcfifo_agilex7 #(
+    dcfifo_wrapper #(
         .WIDTH              (TDEST_WIDTH + 1),
         .DEPTH              (BUFFER_DEPTH),
         .EXTRA_SYNC_STAGES  (EXTRA_SYNC_STAGES),
@@ -363,7 +363,7 @@ module axis_clkcross_shim_in #(
     // Data buffer
     generate begin: data_fifo_gen
         if (SERIALIZATION_FACTOR == 1) begin
-            dcfifo_agilex7 #(
+            dcfifo_wrapper #(
                 .WIDTH              (TDATA_WIDTH),
                 .DEPTH              (BUFFER_DEPTH),
                 .EXTRA_SYNC_STAGES  (EXTRA_SYNC_STAGES),
@@ -381,7 +381,7 @@ module axis_clkcross_shim_in #(
                 .wrfull (data_buffer_wrfull)
             );
         end else begin
-            dcfifo_mixed_width_agilex7 #(
+            dcfifo_mixed_width_wrapper #(
                 .WIDTH_IN           (TDATA_WIDTH),
                 .WIDTH_OUT          (FLIT_WIDTH),
                 .DEPTH              (BUFFER_DEPTH),
@@ -484,7 +484,7 @@ module axis_clkcross_shim_out #(
 
     // Instantiations
     // Destination + Tail buffer
-    dcfifo_agilex7 #(
+    dcfifo_wrapper #(
         .WIDTH              (TDEST_WIDTH + 1),
         .DEPTH              (BUFFER_DEPTH),
         .EXTRA_SYNC_STAGES  (EXTRA_SYNC_STAGES),
@@ -505,7 +505,7 @@ module axis_clkcross_shim_out #(
     // Data buffer
     generate begin: data_buffer_gen
         if (SERIALIZATION_FACTOR == 1) begin
-            dcfifo_agilex7 #(
+            dcfifo_wrapper #(
                 .WIDTH              (FLIT_WIDTH),
                 .DEPTH              (BUFFER_DEPTH * SERIALIZATION_FACTOR),
                 .EXTRA_SYNC_STAGES  (EXTRA_SYNC_STAGES),
@@ -524,7 +524,7 @@ module axis_clkcross_shim_out #(
                 .wrusedw(data_buffer_wrusedw)
             );
         end else begin
-            dcfifo_mixed_width_agilex7 #(
+            dcfifo_mixed_width_wrapper #(
                 .WIDTH_IN           (FLIT_WIDTH),
                 .WIDTH_OUT          (TDATA_WIDTH),
                 .DEPTH              (BUFFER_DEPTH * SERIALIZATION_FACTOR),
@@ -600,7 +600,7 @@ module axis_shim_in #(
                 send_out <= buffer_rdreq;
             end
 
-            fifo_agilex7 #(
+            fifo_wrapper #(
                 .WIDTH      (TDATA_WIDTH + TDEST_WIDTH + 1),
                 .DEPTH      (BUFFER_DEPTH),
                 .FORCE_MLAB (FORCE_MLAB))
@@ -662,7 +662,7 @@ module axis_shim_out #(
     assign credit_out = ((credit_count < FLIT_BUFFER_DEPTH) || send_in) &&
                         ((credit_count < (BUFFER_DEPTH - buffer_usedw)) || (axis_tready & axis_tvalid));
 
-    fifo_agilex7 #(
+    fifo_wrapper #(
         .WIDTH      (TDATA_WIDTH + TDEST_WIDTH + 1),
         .DEPTH      (BUFFER_DEPTH),
         .SHOWAHEAD  ("ON"),

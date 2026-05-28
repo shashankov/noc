@@ -320,7 +320,7 @@ module router #(
     generate begin: flit_buffer_gen
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
-            fifo_agilex7 #(
+            fifo_wrapper #(
                 .WIDTH      (FLIT_WIDTH),
                 .DEPTH      (FLIT_BUFFER_DEPTH),
                 .FORCE_MLAB (FORCE_MLAB))
@@ -342,7 +342,7 @@ module router #(
     generate begin: tail_buffer_gen
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
-            fifo_agilex7 #(
+            fifo_wrapper #(
                 .WIDTH      (1),
                 .DEPTH      (FLIT_BUFFER_DEPTH))
                 // .FORCE_MLAB (FORCE_MLAB))
@@ -364,7 +364,7 @@ module router #(
     generate begin: dest_buffer_gen
         genvar i;
         for (i = 0; i < NUM_INPUTS; i++) begin: for_inputs
-            fifo_agilex7 #(
+            fifo_wrapper #(
                 .WIDTH      (DEST_WIDTH),
                 .DEPTH      (FLIT_BUFFER_DEPTH),
                 .FORCE_MLAB (FORCE_MLAB))

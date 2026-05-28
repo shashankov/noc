@@ -82,4 +82,4 @@ foreach each_inst $inst_list {
 
     }
 }
-apply_sdc_pre_dcfifo dcfifo_agilex7
+apply_sdc_pre_dcfifo dcfifo_wrapper

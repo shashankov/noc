@@ -10,3 +10,10 @@ transcript
 # Test related
 obj_dir/
 regress_logs/
+
+# Vivado generated
+.Xil/
+vivado*.log
+vivado*.jou
+compile_simlib.log
+.cxl.*

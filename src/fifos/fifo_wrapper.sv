@@ -15,7 +15,7 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module  fifo_agilex7 #(
+module  fifo_wrapper #(
     parameter DEPTH = 4,
     parameter WIDTH = 32,
     parameter SHOWAHEAD = "OFF",
@@ -45,7 +45,62 @@ module  fifo_agilex7 #(
 //     if (sclr == 1'b0) $display("FIFO %m: clock=%d, data=%h, rdreq=%d, sclr=%d, wrreq=%d", clock, data, rdreq, sclr, wrreq);
 // end
 
-`ifndef SIMULATION
+`ifdef QUARTUS_FIFO
+    `ifdef VIVADO_FIFO
+        initial begin
+            $fatal(1, "Both QUARTUS_FIFO and VIVADO_FIFO are defined.");
+        end
+    `endif
+`endif
+
+`ifdef VIVADO_FIFO
+    localparam XILINX_DEPTH = (DEPTH < 16) ? 16 : DEPTH;
+    wire [$clog2(XILINX_DEPTH) : 0] xil_usedw;
+    assign usedw = xil_usedw[$clog2(DEPTH)-1:0];
+
+    wire xil_full;
+    wire wr_rst_busy;
+    assign full = xil_full || wr_rst_busy;
+
+    xpm_fifo_sync #(
+        .FIFO_MEMORY_TYPE    (FORCE_MLAB ? "distributed" : "auto"),
+        .FIFO_WRITE_DEPTH    (XILINX_DEPTH),
+        .WRITE_DATA_WIDTH    (WIDTH),
+        .READ_DATA_WIDTH     (WIDTH),
+        .READ_MODE           ((SHOWAHEAD == "ON") ? "fwft" : "std"),
+        .FIFO_READ_LATENCY   ((SHOWAHEAD == "ON") ? 0 : 1),
+        .ECC_MODE            ("no_ecc"),
+        .USE_ADV_FEATURES    ("0505"),
+        .WR_DATA_COUNT_WIDTH ($clog2(XILINX_DEPTH) + 1)
+    ) xpm_fifo_sync_inst (
+        .wr_clk        (clock),
+        .rst           (sclr),
+        .din           (data),
+        .wr_en         (wrreq),
+        .rd_en         (rdreq),
+        .dout          (q),
+        .empty         (empty),
+        .full          (xil_full),
+        .wr_data_count (xil_usedw),
+        .sleep         (1'b0),
+        .injectsbiterr (1'b0),
+        .injectdbiterr (1'b0),
+        .sbiterr       (),
+        .dbiterr       (),
+        .rd_rst_busy   (),
+        .wr_rst_busy   (wr_rst_busy),
+        .almost_full   (),
+        .almost_empty  (),
+        .prog_full     (),
+        .prog_empty    (),
+        .wr_ack        (),
+        .overflow      (),
+        .underflow     (),
+        .data_valid    (),
+        .rd_data_count ()
+    );
+`elsif QUARTUS_FIFO
+
     wire  sub_wire0;
     wire  sub_wire1;
     wire [WIDTH-1:0] sub_wire2;
@@ -80,6 +135,7 @@ module  fifo_agilex7 #(
         scfifo_component.overflow_checking  = "OFF",
         scfifo_component.underflow_checking  = "OFF",
         scfifo_component.use_eab  = "ON";
+
 `else
 
     logic empty, full;
@@ -144,4 +200,5 @@ module  fifo_agilex7 #(
 
 `endif
 
-endmodule: fifo_agilex7
+endmodule: fifo_wrapper
+

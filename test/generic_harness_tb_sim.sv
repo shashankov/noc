@@ -379,3 +379,14 @@ module generic_harness_tb_sim();
     );
 
 endmodule: generic_harness_tb_sim
+
+`ifdef VIVADO_FIFO
+module glbl;
+    logic GSR;
+    initial begin
+        GSR = 1'b1;
+        #100;
+        GSR = 1'b0;
+    end
+endmodule
+`endif

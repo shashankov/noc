@@ -15,7 +15,7 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module  dcfifo_agilex7 #(
+module  dcfifo_wrapper #(
     parameter WIDTH = 512,
     parameter DEPTH = 8,
     parameter EXTRA_SYNC_STAGES = 0,
@@ -51,7 +51,72 @@ module  dcfifo_agilex7 #(
 // synopsys translate_on
 `endif
 
-`ifndef SIMULATION
+`ifdef QUARTUS_FIFO
+    `ifdef VIVADO_FIFO
+        initial begin
+            $fatal(1, "Both QUARTUS_FIFO and VIVADO_FIFO are defined.");
+        end
+    `endif
+`endif
+
+`ifdef VIVADO_FIFO
+    localparam XILINX_DEPTH = (DEPTH < 16) ? 16 : DEPTH;
+    localparam CDC_STAGES_REQ = 4 + EXTRA_SYNC_STAGES;
+    localparam CDC_STAGES_CLAMPED = (CDC_STAGES_REQ < 2) ? 2 : ((CDC_STAGES_REQ > 8) ? 8 : CDC_STAGES_REQ);
+    localparam XILINX_CDC_SYNC_STAGES = (XILINX_DEPTH == 16 && CDC_STAGES_CLAMPED >= 5) ? 4 : CDC_STAGES_CLAMPED;
+
+    wire [$clog2(XILINX_DEPTH) : 0] xil_wrusedw;
+    assign wrusedw = xil_wrusedw[$clog2(DEPTH):0];
+
+    wire xil_wrfull;
+    wire xil_rdempty;
+    wire wr_rst_busy;
+    wire rd_rst_busy;
+
+    assign wrfull = xil_wrfull || wr_rst_busy;
+    assign rdempty = xil_rdempty || rd_rst_busy;
+
+    xpm_fifo_async #(
+        .FIFO_MEMORY_TYPE    (FORCE_MLAB ? "distributed" : "auto"),
+        .FIFO_WRITE_DEPTH    (XILINX_DEPTH),
+        .WRITE_DATA_WIDTH    (WIDTH),
+        .READ_DATA_WIDTH     (WIDTH),
+        .READ_MODE           ((SHOWAHEAD == "ON") ? "fwft" : "std"),
+        .FIFO_READ_LATENCY   ((SHOWAHEAD == "ON") ? 0 : 1),
+        .CDC_SYNC_STAGES     (XILINX_CDC_SYNC_STAGES),
+        .ECC_MODE            ("no_ecc"),
+        .USE_ADV_FEATURES    ("0505"),
+        .WR_DATA_COUNT_WIDTH ($clog2(XILINX_DEPTH) + 1)
+    ) xpm_fifo_async_inst (
+        .wr_clk        (wrclk),
+        .rd_clk        (rdclk),
+        .rst           (aclr),
+        .din           (data),
+        .wr_en         (wrreq),
+        .rd_en         (rdreq),
+        .dout          (q),
+        .empty         (xil_rdempty),
+        .full          (xil_wrfull),
+        .wr_data_count (xil_wrusedw),
+        .sleep         (1'b0),
+        .injectsbiterr (1'b0),
+        .injectdbiterr (1'b0),
+        .sbiterr       (),
+        .dbiterr       (),
+        .rd_rst_busy   (rd_rst_busy),
+        .wr_rst_busy   (wr_rst_busy),
+        .almost_full   (),
+        .almost_empty  (),
+        .prog_full     (),
+        .prog_empty    (),
+        .wr_ack        (),
+        .overflow      (),
+        .underflow     (),
+        .data_valid    (),
+        .rd_data_count ()
+    );
+`elsif QUARTUS_FIFO
+
     wire [WIDTH-1:0] sub_wire0;
     wire  sub_wire1;
     wire  sub_wire2;
@@ -90,6 +155,7 @@ module  dcfifo_agilex7 #(
         dcfifo_component.use_eab  = "ON",
         dcfifo_component.write_aclr_synch  = "ON",
         dcfifo_component.wrsync_delaypipe  = 4 + EXTRA_SYNC_STAGES;
+
 `else
 
     localparam ADDR_WIDTH = $clog2(DEPTH);
@@ -184,6 +250,6 @@ module  dcfifo_agilex7 #(
 
 `endif
 
-endmodule
+endmodule: dcfifo_wrapper
 
 

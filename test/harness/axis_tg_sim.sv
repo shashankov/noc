@@ -114,7 +114,7 @@ module axis_tg_sim #(
         endcase
     end
 
-    fifo_agilex7 #(
+    fifo_wrapper #(
         .DEPTH(4*1024*1024),
         .WIDTH(TDATA_WIDTH + TID_WIDTH + TDEST_WIDTH),
         .SHOWAHEAD("ON"),

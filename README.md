@@ -7,7 +7,7 @@
 
 Author: Shashank Obla (https://www.andrew.cmu.edu/user/sobla)
 
-ReCONNECT is a highly-parametrizable, high-performance soft network-on-chip designed to be customizable to the needs of the application while being resource-minimal and tuned for modern FPGA architectures. Written directly in SystemVerilog (RTL), the NoC is specially optimized for high-frequency operations on Intel FPGA architectures (such as Intel Agilex 7) and operates at frequencies exceeding 500 MHz. Find more about it here: [https://www.andrew.cmu.edu/user/sobla/projects/noc/](https://www.andrew.cmu.edu/user/sobla/projects/noc/)
+ReCONNECT is a highly-parametrizable, high-performance soft network-on-chip designed to be customizable to the needs of the application while being resource-minimal and tuned for modern FPGA architectures. Written directly in SystemVerilog (RTL), the NoC is specially optimized for high-frequency operations on modern FPGA architectures and operates at frequencies exceeding 500 MHz. Find more about it here: [https://www.andrew.cmu.edu/user/sobla/projects/noc/](https://www.andrew.cmu.edu/user/sobla/projects/noc/)
 
 
 ## Getting Started with Simulation
@@ -15,44 +15,28 @@ ReCONNECT is a highly-parametrizable, high-performance soft network-on-chip desi
 Simulations are configured and executed using the Makefile located in the `test` directory.
 
 ### Quick Start
-To run the default simulation, install Verilator 5.0+ and run the following command:
+To run the default simulation, first install Verilator and run the following command:
+
+> [!NOTE]
+> Requires **Verilator 5.0 or later** (tested with version 5.048).
 
 ```bash
 cd test
 make run
 ```
 
+> [!TIP]
+> To point to a local installation of Verilator instead of the global one, override the `VERILATOR` path on the command line. You may also need to define the `VERILATOR_ROOT` environment variable pointing to the root of your local installation so that the compiler can locate Verilator's runtime headers and libraries:
+> ```bash
+> export VERILATOR_ROOT=/path/to/local/verilator
+> make run VERILATOR=$VERILATOR_ROOT/bin/verilator
+> ```
+
 #### Regression
 We also provide a regression suite testing various NoC topologies and configurations:
 ```bash
 make regress
 ```
-
-### Simulation Environments
-
-We support both **Verilator** and **ModelSim** simulation environments.
-
-#### Verilator
-*Note: Requires **Verilator 5.0 or later** (tested with version 5.048).*
-
-Verilator simulations are compiled with behavioral FIFO models (`SIMULATION=1`):
-```bash
-make verilator [OPTIONS...]
-```
-
-To point to a local installation of Verilator instead of the global one, override the `VERILATOR` path on the command line. You may also need to define the `VERILATOR_ROOT` environment variable pointing to the root of your local installation so that the compiler can locate Verilator's runtime headers and libraries:
-```bash
-export VERILATOR_ROOT=/path/to/local/verilator
-make verilator VERILATOR=$VERILATOR_ROOT/bin/verilator
-```
-
-#### ModelSim
-ModelSim supports both behavioral simulation and actual Intel FPGA IPs/libraries.
-```bash
-make modelsim [OPTIONS...]
-```
-
-To run simulations with Quartus IPs, update your Quartus installation path on line 116 of [msim_setup.tcl](./test/sim/msim_setup.tcl) (Verified with Quartus version 23.2)
 
 ### Simulation Options
 
@@ -62,19 +46,42 @@ To see the full list of options available, run the following command ([Descripti
 make help
 ```
 
-* **Behavioral Simulation (`SIMULATION=1`, Default)**: Uses fast, lightweight behavioral FIFO models.
-* **Intel FPGA IP Simulation (`SIMULATION=0`)**: Simulates the design using Intel FPGA IP blocks (`scfifo`, `dcfifo`).
+* **Behavioral Simulation (Default)**: Uses fast, lightweight behavioral FIFO models (neither `QUARTUS_FIFO=1` nor `VIVADO_FIFO=1` is set).
+* **(Altera) Quartus FPGA IP Simulation (`QUARTUS_FIFO=1`)**: Simulates the design using Quartus IP blocks.
+* **(AMD) Vivado FPGA IP Simulation (`VIVADO_FIFO=1`)**: Simulates the design using Vivado IP blocks.
+
+#### ModelSim
+ModelSim supports behavioral simulation, Quartus and Vivado native FIFOs.
+```bash
+make modelsim [OPTIONS...]
+```
+
+> [!IMPORTANT]
+> **(Altera) Quartus FPGA IPs**: To run simulations with Quartus IPs, update your Quartus installation path on line 116 of [msim_setup.tcl](./test/sim/msim_setup.tcl) (Verified with Quartus version 23.2).
+>
+> **(AMD) Vivado IPs**: To run simulations with Vivado FIFOs (using XPM FIFO components), you must source your Vivado settings script (e.g., `source /path/to/Xilinx/Vivado/<version>/settings64.sh`) before launching the simulation.
 
 ### Simulation Examples
-Run a 4 $\times$ 4 Mesh topology simulation in ModelSim:
+Run a 4 x 4 Mesh topology simulation in ModelSim (Behavioral):
 ```bash
 make modelsim TOPOLOGY=mesh NUM_ROWS=4 NUM_COLS=4
 ```
 
-Run a clock-crossing simulation using Intel FPGA IPs in ModelSim:
+Run a clock-crossing simulation using Quartus/Intel FPGA IPs in ModelSim:
 ```bash
-make modelsim SIMULATION=0 CLKCROSS_FACTOR=2
+make modelsim QUARTUS_FIFO=1 CLKCROSS_FACTOR=2
 ```
+
+Run a clock-crossing simulation using Vivado/AMD FPGA IPs in ModelSim:
+```bash
+source /path/to/Xilinx/Vivado/2024.1/settings64.sh  # Load Vivado settings first!
+make modelsim VIVADO_FIFO=1 CLKCROSS_FACTOR=2
+```
+
+## Building using Quartus/Vivado
+
+> [!TIP]
+> It is recommended to use the native FPGA/IP blocks rather than behavioral models for timing closure and area utilization. To this end, make sure to set global defines in the project settings for `QUARTUS_FIFO` / `VIVADO_FIFO` if you intend to use the IP blocks.
 
 ## NoC Parameterization
 
@@ -96,7 +103,9 @@ Most are a subset of the [Router Parameters](#router-parameters) but the mapping
 ### Routing Table Generation
 
 `routing_tables/` contains scripts to generate routing tables based on X-Y dimension ordered routing for mesh, torus and directional torus and shortest-path routing for Double-Ring and Ring networks.
-Note: For torus, ties occur when the node can be reached from either direction. Ties are broken by alternating for each node which side is chosen evening out the load on each link.
+
+> [!NOTE]
+> For torus, ties occur when the node can be reached from either direction. Ties are broken by alternating for each node which side is chosen evening out the load on each link.
 
 Usage:
 - Router: `./gen_router_table.py <num_inputs> <num_outputs> <file_prefix>`
@@ -118,7 +127,7 @@ Describes a Mesh NoC using the [router interface](#router-interface) for IO pair
 | --------: | :---------- |
 | NUM_ROWS | Number of rows in the mesh |
 | NUM_COLS | Number of columns in the mesh |
-| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays credit resolution and a larger flit buffer might be required to prevent dead cycles |
 | ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
 | OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
 
@@ -132,7 +141,7 @@ Describes a Torus NoC using the [router interface](#router-interface) for IO pai
 | --------: | :---------- |
 | NUM_ROWS | Number of rows in the mesh |
 | NUM_COLS | Number of columns in the mesh |
-| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays credit resolution and a larger flit buffer might be required to prevent dead cycles |
 | EXTRA_PIPELINE_LONG_LINKS | Number of **extra** pipeline registers to add to the links that wrap around (adds to PIPELINE_LINKS) |
 | ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
 | OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
@@ -147,7 +156,7 @@ Describes a Directional Torus NoC using the [router interface](#router-interface
 | --------: | :---------- |
 | NUM_ROWS | Number of rows in the mesh |
 | NUM_COLS | Number of columns in the mesh |
-| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays creidt resolution and a larger flit buffer might be required to prevent dead cycles |
+| PIPELINE_LINKS | Number of pipeline registers to add to the links between routers. Higher number delays credit resolution and a larger flit buffer might be required to prevent dead cycles |
 | EXTRA_PIPELINE_LONG_LINKS | Number of **extra** pipeline registers to add to the links that wrap around (adds to PIPELINE_LINKS) |
 | ROUTING_TABLE_PREFIX | Prefix of the location of hex files containing the routing tables. Tables follow the format `prefix/i_j.hex` for router at row i and column j |
 | OPTIMIZE_FOR_ROUTING | Only available option being "XY", disables the appropriate turns in the router crossbars for XY Routing
