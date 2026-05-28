@@ -1,5 +1,10 @@
 # ReCONNECT: FPGA-Optimized RTL-Native Network-on-Chip (NoC)
 
+[![Regression](https://github.com/shashankov/ReCONNECT/actions/workflows/ci.yml/badge.svg)](https://github.com/shashankov/ReCONNECT/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Language](https://img.shields.io/badge/Language-SystemVerilog-blue.svg)](https://en.wikipedia.org/wiki/SystemVerilog)
+[![Simulators](https://img.shields.io/badge/Simulators-Verilator%20%7C%20ModelSim-purple.svg)](#)
+
 Author: Shashank Obla (https://www.andrew.cmu.edu/user/sobla)
 
 ReCONNECT is a highly-parametrizable, high-performance soft network-on-chip designed to be customizable to the needs of the application while being resource-minimal and tuned for modern FPGA architectures. Written directly in SystemVerilog (RTL), the NoC is specially optimized for high-frequency operations on Intel FPGA architectures (such as Intel Agilex 7) and operates at frequencies exceeding 500 MHz. Find more about it here: [https://www.andrew.cmu.edu/user/sobla/projects/noc/](https://www.andrew.cmu.edu/user/sobla/projects/noc/)

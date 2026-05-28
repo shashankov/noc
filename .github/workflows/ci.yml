@@ -1,4 +1,4 @@
-name: NoC Regression CI
+name: Regression
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,10 +27,10 @@ jobs:
 
       - name: Cache Verilator Build
         id: cache-verilator
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: /home/runner/verilator-bin
-          key: verilator-5.048-v1
+          key: verilator-5.048-v2
 
       - name: Install Build Prerequisites
         run: |
@@ -59,4 +59,4 @@ jobs:
 
       - name: Run Regression Suite
         run: |
-          make -C test regress REGRESS_PACKET_COUNT=65536
+          make -C test regress REGRESS_PACKET_COUNT=65536 THREADS=4

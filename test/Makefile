@@ -2,7 +2,8 @@
 # Parameterized for any topology and config
 
 VERILATOR ?= verilator
-VERILATOR_FLAGS = --binary --top-module generic_harness_tb_sim -Wno-fatal -Wno-WIDTH -Wno-PINMISSING -Wno-IMPLICIT -DSIMULATION --threads 4
+THREADS ?= 4
+VERILATOR_FLAGS = --binary --top-module generic_harness_tb_sim -Wno-fatal -Wno-WIDTH -Wno-PINMISSING -Wno-IMPLICIT -DSIMULATION --threads $(THREADS)
 
 VSIM = vsim -c
 PYTHON ?= python3
